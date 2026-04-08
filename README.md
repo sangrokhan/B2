@@ -1,23 +1,23 @@
 # B2
 
-Obsidian vault repository.
+주인님의 Obsidian vault 저장소입니다.
 
-## Local path
+## 로컬 경로
 
 - `~/.openclaw/workspace/B2`
 
-## Remote
+## 원격 저장소
 
 - `git@github-b2:sangrokhan/B2.git`
 
-## Structure
+## 구조
 
-- `Home.md` - vault entry note
-- `Inbox/Conversations/` - conversation logs
-- `Templates/` - note templates
-- `Assets/` - attachments
-- `.obsidian/` - vault configuration and plugins
+- `Home.md` - vault 시작 노트
+- `Inbox/Conversations/` - 대화 기록
+- `Templates/` - 노트 템플릿
+- `Assets/` - 첨부파일
+- `.obsidian/` - vault 설정 및 플러그인
 
-## Sync
+## 동기화
 
-This vault is configured for the Obsidian Git community plugin.
+이 vault는 Obsidian Git 커뮤니티 플러그인 기준으로 구성되어 있습니다.

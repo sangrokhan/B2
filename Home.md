@@ -1,4 +1,4 @@
-# B2 Vault
+# B2 보관함
 
 - [[Inbox/Conversations]]
 - [[Templates/Conversation Log]]

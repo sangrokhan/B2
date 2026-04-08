@@ -4,20 +4,20 @@ source: slack
 topic:
 created:
 tags:
-  - conversation
+  - 대화
 ---
 
 # {{title}}
 
-## Summary
+## 요약
 
 
-## Decisions
+## 결정 사항
 - 
 
-## TODO
+## 할 일
 - [ ] 
 
-## Raw Notes
+## 원문 메모
 
 

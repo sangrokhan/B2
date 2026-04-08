@@ -1,10 +1,10 @@
 # {{date}}
 
-## Notes
+## 메모
 
 
-## Conversations
+## 대화 기록
 - 
 
-## TODO
+## 할 일
 - [ ] 
