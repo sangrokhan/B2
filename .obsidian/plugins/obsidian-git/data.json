@@ -1,0 +1,11 @@
+{
+  "commitMessage": "vault: update daily note {{date}} {{time}}",
+  "autoSaveInterval": 0,
+  "autoBackupInterval": 0,
+  "pullOnStartup": true,
+  "disablePush": false,
+  "disablePopups": false,
+  "listChangedFilesInMessageBody": false,
+  "showStatusBar": true,
+  "syncMethod": "merge"
+}
