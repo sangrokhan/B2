@@ -393,10 +393,10 @@ wrapper 기준으로는 다음 두 모드를 분리하는 것이 좋다.
 
 ---
 
-## 개발 Spec 초안
+## 개발 Spec
 
-이 섹션은 실제 구현을 위한 검토용 spec 초안이다.
-주인님이 직접 수정하고 확정한 뒤, 그 다음 단계에서 개발을 진행하는 것을 전제로 한다.
+이 섹션은 실제 구현을 위한 기준 spec이다.
+이미 합의된 결정 사항은 본문에 반영했고, 남은 항목만 별도 체크리스트로 관리한다.
 
 ### 1. 목적
 
@@ -407,7 +407,7 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 - 도구별 실행 옵션 차이를 adapter로 감춘다.
 - 상위 호출자는 공통 입력 스펙만 전달한다.
 - 파일 기반 작업 지시를 공통 방식으로 취급한다.
-- 결과를 JSON 또는 이벤트 스트림 형태로 일관되게 수집한다.
+- 결과를 `final-json` 형태로 일관되게 수집한다.
 - 이후 오케스트레이션, 큐잉, 병렬 실행, 재시도 로직을 쉽게 얹을 수 있도록 한다.
 
 ### 2. 비목표
@@ -455,7 +455,6 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 - 페르소나 파일 경로
 - 작업 내용 파일 경로
 - 추가 컨텍스트 파일 목록
-- 원하는 출력 형식
 - 선택적 모델 지정
 - 선택적 도구별 추가 인자
 
@@ -493,12 +492,13 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 
 시스템은 위 파일 내용을 읽어 하나의 표준 프롬프트 문자열로 합성해야 한다.
 
-#### FR-6. JSON 출력
+#### FR-6. JSON 출력 표준
 
-시스템은 최소 아래 두 출력 모드를 지원해야 한다.
+v1의 표준 출력은 `final-json` 으로 고정한다.
 
-- `final-json`
-- `event-stream`
+- 상위 호출자는 도구별 스트림 형식을 직접 다루지 않는다.
+- wrapper가 도구별 출력을 정규화해 최종 JSON 객체로 반환한다.
+- `event-stream` 지원은 v2 이후 확장 항목으로 남긴다.
 
 #### FR-7. 실행 결과 수집
 
@@ -508,7 +508,6 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 - stderr
 - exitCode
 - parsed output if available
-- raw event stream if available
 
 #### FR-8. 도구별 adapter 분리
 
@@ -534,6 +533,8 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 - 어떤 최종 프롬프트가 생성됐는지
 - 어떤 stdout/stderr가 반환됐는지
 
+로그는 작업 단위(run/task) JSON 아티팩트로 저장하는 것을 기본 정책으로 한다.
+
 #### NFR-3. 확장 가능성
 
 향후 추가 CLI 도구가 생겨도 adapter만 추가하면 붙일 수 있어야 한다.
@@ -546,7 +547,6 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 
 ```ts
 export type ToolKind = 'claude' | 'codex' | 'gemini';
-export type OutputMode = 'final-json' | 'event-stream';
 
 export interface PromptFiles {
   personaFile?: string;
@@ -559,7 +559,6 @@ export interface RunRequest {
   tool: ToolKind;
   cwd: string;
   promptFiles: PromptFiles;
-  outputMode: OutputMode;
   model?: string;
   extraArgs?: string[];
   timeoutMs?: number;
@@ -567,12 +566,13 @@ export interface RunRequest {
 }
 
 export interface RunArtifacts {
+  runId: string;
   compositePrompt: string;
   stdout: string;
   stderr: string;
   exitCode: number;
   parsedOutput?: unknown;
-  events?: unknown[];
+  logFilePath?: string;
 }
 ```
 
@@ -603,7 +603,7 @@ export interface RunArtifacts {
 6. 실행 명령/인자 생성
 7. cwd에서 CLI 실행
 8. stdout/stderr 수집
-9. output mode에 따라 파싱
+9. final-json 기준으로 파싱 및 정규화
 10. `RunArtifacts` 반환
 
 ### 10. 표준 프롬프트 합성 포맷 초안
@@ -640,7 +640,7 @@ Return valid JSON only.
 - `claude` 명령 사용
 - `-p` 또는 print mode 기반 실행
 - `--model` 연결
-- json/stream-json 옵션 연결
+- final-json 확보를 위한 출력 옵션 연결
 
 #### Codex adapter
 
@@ -653,7 +653,7 @@ Return valid JSON only.
 - `codex exec`
 - `-C` cwd 적용
 - `-m` 또는 동등한 model override 적용
-- `--json` 여부 결정
+- final-json 정규화를 위한 내부 출력 수집 방식 결정
 - stdin 기반 prompt 전달
 
 #### Gemini adapter
@@ -667,14 +667,17 @@ Return valid JSON only.
 - `-p` 또는 stdin 기반 입력 처리
 - `-m` 또는 `--model` 적용
 - `--output-format` 적용
-- 필요 시 include-directories 연결
+- v1에서는 `include-directories` 공통화 없이 동작
 
 ### 12. 출력 파싱 정책 초안
+
+v1은 `final-json` 만 표준 지원한다.
 
 #### final-json
 
 - 가능하면 최종 결과를 단일 JSON 객체로 정규화한다.
 - 도구별 원본 출력이 다르면 wrapper가 normalize 한다.
+- 내부적으로 스트림이나 JSONL을 사용하더라도 외부 계약은 final-json 으로 맞춘다.
 
 예상 반환 스키마:
 
@@ -688,20 +691,7 @@ interface FinalJsonResult {
 }
 ```
 
-#### event-stream
-
-- JSONL 또는 stream-json 형태의 이벤트를 배열 또는 iterator 형태로 제공한다.
-- 이벤트 원형 보존을 우선한다.
-
-예상 반환 스키마:
-
-```ts
-interface EventStreamResult {
-  tool: ToolKind;
-  success: boolean;
-  events: unknown[];
-}
-```
+`event-stream` 은 향후 디버깅/실시간 UI 요구가 생기면 별도 확장 스펙으로 추가한다.
 
 ### 13. 오류 처리 정책 초안
 
@@ -739,16 +729,16 @@ class TimeoutError extends Error {}
 async function runMany(requests: RunRequest[]): Promise<RunArtifacts[]>;
 ```
 
-### 15. 미결정 항목
+### 15. 확정 사항
 
-주인님 검토가 필요한 항목:
+이번 검토에서 아래처럼 결정한다.
 
-- 출력 표준을 `final-json` 중심으로 할지 `event-stream` 중심으로 할지
-- 합성 프롬프트 원문을 로그로 항상 남길지 여부
-- 도구별 고급 옵션을 어느 수준까지 공통 인터페이스에 노출할지
-- cwd 외에 `additionalDirectories` 같은 개념을 공통화할지 여부
-- 이미지 입력을 v1 범위에 넣을지 여부
-- 세션 재개 기능을 v1 범위에 넣을지 여부
+- 출력 표준은 `final-json` 으로 고정한다.
+- 로그는 작업 단위(run/task) JSON 파일로 저장한다.
+- 도구별 고급 옵션은 공통 인터페이스에 최소한만 노출하고, 예외 상황은 `extraArgs` 로 처리한다.
+- `additionalDirectories` 는 v1 공통 인터페이스에 넣지 않는다.
+- 이미지 입력은 v1 범위에서 제외한다.
+- 세션 재개 기능은 v1 범위에서 제외한다.
 
 ### 16. 권장 구현 순서
 
@@ -762,14 +752,12 @@ async function runMany(requests: RunRequest[]): Promise<RunArtifacts[]>;
 8. fixture 기반 테스트 작성
 9. 병렬 실행 확장 검토
 
-### 17. 검토 체크리스트
+### 17. 남은 검토 체크리스트
 
-개발 시작 전 아래를 확정해야 한다.
+아래는 이미 결정된 항목이 아니라, 아직 추가 확정이 필요한 항목만 남긴다.
 
 - [ ] v1 범위에 포함할 도구를 최종 확정
-- [ ] 표준 출력 스키마 확정
 - [ ] 프롬프트 합성 포맷 확정
-- [ ] 로그 저장 정책 확정
 - [ ] 병렬 실행 범위 확정
 - [ ] 테스트 전략 확정
 - [ ] 구현 언어 및 패키지 구조 확정
@@ -781,7 +769,9 @@ async function runMany(requests: RunRequest[]): Promise<RunArtifacts[]>;
 - 공통 입력은 `파일 경로 집합`으로 받는다.
 - 내부에서는 `합성 프롬프트`로 변환한다.
 - 실행은 `tool adapter + cwd` 구조로 분리한다.
-- 결과는 `stdout 기반 JSON`으로 수집한다.
+- 결과는 `final-json` 으로 정규화하고, 로그는 작업 단위 JSON 파일로 남긴다.
+- 도구별 고급 옵션은 최소 노출 원칙을 유지하고, 필요 시 `extraArgs` 로 우회한다.
+- `additionalDirectories`, 이미지 입력, 세션 재개는 v1 범위에서 제외한다.
 - 병렬성은 `독립 작업 디렉터리` 전략으로 해결한다.
 
-이 spec은 검토 및 수정 전의 초안이며, 이후 실제 구현 요청 시 기준 문서로 사용한다.
+이 spec은 현재까지 합의된 내용을 반영한 구현 기준 문서이며, 남은 항목은 체크리스트 기준으로 추가 확정한다.
