@@ -19,6 +19,7 @@ Claude Code, Codex CLI, Gemini CLI를 공통 컴포넌트로 추상화해 사용
 
 - 세 도구 모두 *headless 실행*이 가능하다.
 - 세 도구 모두 *작업 경로(cwd) 지정*이 가능하다.
+- 세 도구 모두 *headless 실행 시 모델 지정*이 가능하다.
 - 세 도구 모두 *JSON 계열 출력*을 받을 수 있다.
 - 세 도구 모두 *파일 기반 컨텍스트 제공*은 가능하지만, 완전히 동일한 네이티브 인터페이스는 아니다.
 - 따라서 공통 설계는 *파일 직접 첨부 추상화*보다, *파일 내용을 읽어 하나의 프롬프트로 합성한 뒤 stdin으로 전달*하는 방식이 가장 안정적이다.
@@ -35,6 +36,9 @@ Claude Code, Codex CLI, Gemini CLI를 공통 컴포넌트로 추상화해 사용
 
 - headless 실행 가능
   - `claude -p "..."`
+- headless에서 모델 지정 가능
+  - CLI reference에 `--model <model>` 전역 플래그가 있고, `-p` print/headless 모드와 함께 사용할 수 있는 구조다.
+  - 실무적으로는 `claude --model <MODEL> -p "..."` 형태로 보는 것이 맞다.
 - 파일/컨텍스트 제공 방식
   - `cat file | claude -p "..."` 형태의 stdin 파이프 가능
   - `--add-dir` 로 추가 디렉터리 접근 가능
@@ -48,6 +52,10 @@ Claude Code, Codex CLI, Gemini CLI를 공통 컴포넌트로 추상화해 사용
 
 - headless 실행 가능
   - `codex exec "..."`
+- headless에서 모델 지정 가능
+  - `codex exec --help` 기준 `-m, --model <MODEL>` 지원
+  - 예: `codex exec -m gpt-5.4 "..."`
+  - 추가로 `-c model=...` 계열 설정 override도 가능
 - 파일/컨텍스트 제공 방식
   - 프롬프트를 stdin으로 받을 수 있음
   - stdin을 추가 컨텍스트로 붙일 수 있음
@@ -65,6 +73,11 @@ Claude Code, Codex CLI, Gemini CLI를 공통 컴포넌트로 추상화해 사용
 - headless 실행 가능
   - `-p` / `--prompt`
   - non-TTY 환경에서도 headless
+- headless에서 모델 지정 가능
+  - `gemini --help` 기준 `-m, --model` 지원
+  - docs에도 `--model` 플래그로 특정 Gemini 모델 지정 가능하다고 명시
+  - 예: `gemini -m gemini-2.5-pro -p "..."`
+  - 주의: docs 기준 `--model` 은 sub-agents가 쓰는 모델까지 강제로 덮어쓰지는 않음
 - 파일/컨텍스트 제공 방식
   - stdin 입력 가능
   - `--include-directories` 로 추가 디렉터리 포함 가능
@@ -84,6 +97,26 @@ Claude Code, Codex CLI, Gemini CLI를 공통 컴포넌트로 추상화해 사용
 - `outputFormat`: json 또는 stream-json 계열
 - `model`: 선택 사항
 - `extraArgs`: 도구별 세부 옵션
+
+## 모델 지정 조사 결과
+
+headless에서 기본 모델만 호출되는지 확인한 결과, *세 도구 모두 headless 입력 명령 수준에서 모델 지정이 가능하다.*
+
+- Claude Code: `--model`
+- Codex CLI: `-m`, `--model`
+- Gemini CLI: `-m`, `--model`
+
+다만 의미상 차이는 있다.
+
+- Claude Code: 세션 시작 플래그 성격이 강함
+- Codex CLI: non-interactive 실행에서 직접 모델 override 가능
+- Gemini CLI: headless에서도 모델 지정 가능하지만, 문서 기준 sub-agent 모델까지 완전히 동일하게 고정되지는 않을 수 있음
+
+따라서 공통 추상화에서는 아래 전제를 둘 수 있다.
+
+- `model?: string` 을 공통 요청 필드로 둔다.
+- adapter는 이를 각 도구의 CLI 플래그로 매핑한다.
+- 단, *모델 강제성의 semantics는 도구별로 동일하다고 가정하지 않는다.*
 
 ### 2. 공통적으로 완전히 같지 않은 것
 
@@ -440,7 +473,15 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 
 시스템은 실행별로 cwd를 지정할 수 있어야 한다.
 
-#### FR-3. 파일 기반 입력 스펙 지원
+#### FR-3. headless 모델 지정
+
+시스템은 headless 실행 시 모델을 명시적으로 지정할 수 있어야 한다.
+
+- `model?: string`
+- 지정하지 않으면 각 도구의 기본 모델 또는 profile/config 값을 사용
+- 지정하면 adapter가 해당 도구의 모델 지정 플래그로 매핑
+
+#### FR-4. 파일 기반 입력 스펙 지원
 
 시스템은 아래 파일 입력을 받을 수 있어야 한다.
 
@@ -448,18 +489,18 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 - `taskFile: string`
 - `contextFiles?: string[]`
 
-#### FR-4. 프롬프트 합성
+#### FR-5. 프롬프트 합성
 
 시스템은 위 파일 내용을 읽어 하나의 표준 프롬프트 문자열로 합성해야 한다.
 
-#### FR-5. JSON 출력
+#### FR-6. JSON 출력
 
 시스템은 최소 아래 두 출력 모드를 지원해야 한다.
 
 - `final-json`
 - `event-stream`
 
-#### FR-6. 실행 결과 수집
+#### FR-7. 실행 결과 수집
 
 시스템은 아래 결과를 반환해야 한다.
 
@@ -469,11 +510,11 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 - parsed output if available
 - raw event stream if available
 
-#### FR-7. 도구별 adapter 분리
+#### FR-8. 도구별 adapter 분리
 
 각 도구별 명령 생성 로직은 독립 adapter로 분리되어야 한다.
 
-#### FR-8. 병렬 실행 대응 가능 구조
+#### FR-9. 병렬 실행 대응 가능 구조
 
 초기 구현에서 병렬 실행 자체를 꼭 제공하지 않더라도, 실행 단위가 독립적이라 이후 병렬 scheduler를 붙일 수 있어야 한다.
 
@@ -593,10 +634,12 @@ Return valid JSON only.
 - Claude Code 실행 명령 생성
 - 출력 형식 옵션 매핑
 - 필요 시 print/headless 옵션 매핑
+- 모델 지정 옵션 매핑
 
 예상 책임:
 - `claude` 명령 사용
 - `-p` 또는 print mode 기반 실행
+- `--model` 연결
 - json/stream-json 옵션 연결
 
 #### Codex adapter
@@ -604,10 +647,12 @@ Return valid JSON only.
 역할:
 - `codex exec` 기반 명령 생성
 - JSONL 스트림과 최종 메시지 처리 기준 정의
+- 모델 지정 옵션 매핑
 
 예상 책임:
 - `codex exec`
 - `-C` cwd 적용
+- `-m` 또는 동등한 model override 적용
 - `--json` 여부 결정
 - stdin 기반 prompt 전달
 
@@ -616,9 +661,11 @@ Return valid JSON only.
 역할:
 - `gemini` headless 실행 명령 생성
 - output format 옵션 매핑
+- 모델 지정 옵션 매핑
 
 예상 책임:
 - `-p` 또는 stdin 기반 입력 처리
+- `-m` 또는 `--model` 적용
 - `--output-format` 적용
 - 필요 시 include-directories 연결
 
