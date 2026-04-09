@@ -357,3 +357,384 @@ wrapper 기준으로는 다음 두 모드를 분리하는 것이 좋다.
 - 분석 대상: Claude Code, Codex CLI, Gemini CLI
 - 초점: headless, 경로 지정, JSON 출력, 파일 기반 작업 지시 제공 가능 여부
 - 설계 관점: 추상화 레이어를 가진 실행 어댑터 구현
+
+---
+
+## 개발 Spec 초안
+
+이 섹션은 실제 구현을 위한 검토용 spec 초안이다.
+주인님이 직접 수정하고 확정한 뒤, 그 다음 단계에서 개발을 진행하는 것을 전제로 한다.
+
+### 1. 목적
+
+Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에서 실행할 수 있는 runner 계층을 만든다.
+
+이 계층의 목표는 다음과 같다.
+
+- 도구별 실행 옵션 차이를 adapter로 감춘다.
+- 상위 호출자는 공통 입력 스펙만 전달한다.
+- 파일 기반 작업 지시를 공통 방식으로 취급한다.
+- 결과를 JSON 또는 이벤트 스트림 형태로 일관되게 수집한다.
+- 이후 오케스트레이션, 큐잉, 병렬 실행, 재시도 로직을 쉽게 얹을 수 있도록 한다.
+
+### 2. 비목표
+
+이번 spec 범위에서 아래는 우선 제외한다.
+
+- GUI/TUI 기반 상호작용 지원
+- 각 도구의 세션 히스토리 완전 통합
+- 툴 내부 subagent 기능의 공통 추상화
+- 웹 로그인, 인증 UI 자동화
+- 결과 품질 평가 시스템
+- 비용 최적화 정책 자동화
+
+### 3. 핵심 설계 원칙
+
+#### 3.1 공통 입력은 파일 첨부가 아니라 프롬프트 합성으로 본다
+
+상위 계층은 `persona file`, `task file`, `context files[]` 를 입력으로 받되, 실제 CLI 전달 전에는 하나의 합성 프롬프트로 만든다.
+
+#### 3.2 공통 출력은 stdout 기준으로 본다
+
+기본 출력 채널은 stdout으로 통일한다.
+필요하면 wrapper 내부에서 파일 저장, 파싱, 후처리를 수행한다.
+
+#### 3.3 도구 차이는 adapter에 한정한다
+
+- 명령어 이름
+- cwd 지정 방식
+- JSON 출력 옵션
+- stdin 처리 방식
+- stream-json 여부
+
+이 차이는 adapter 레이어에서만 처리한다.
+
+#### 3.4 병렬 실행은 런타임 격리로 해결한다
+
+병렬 실행 시 각 런은 서로 다른 디렉터리 또는 worktree를 사용해야 한다.
+
+### 4. 사용자 관점 요구사항
+
+상위 호출자는 최소한 아래 정보만 주면 된다.
+
+- 사용할 도구 종류
+- 작업 디렉터리
+- 페르소나 파일 경로
+- 작업 내용 파일 경로
+- 추가 컨텍스트 파일 목록
+- 원하는 출력 형식
+- 선택적 모델 지정
+- 선택적 도구별 추가 인자
+
+### 5. 기능 요구사항
+
+#### FR-1. 도구 선택
+
+시스템은 다음 도구를 지원해야 한다.
+
+- Claude Code
+- Codex CLI
+- Gemini CLI
+
+#### FR-2. 작업 디렉터리 지정
+
+시스템은 실행별로 cwd를 지정할 수 있어야 한다.
+
+#### FR-3. 파일 기반 입력 스펙 지원
+
+시스템은 아래 파일 입력을 받을 수 있어야 한다.
+
+- `personaFile?: string`
+- `taskFile: string`
+- `contextFiles?: string[]`
+
+#### FR-4. 프롬프트 합성
+
+시스템은 위 파일 내용을 읽어 하나의 표준 프롬프트 문자열로 합성해야 한다.
+
+#### FR-5. JSON 출력
+
+시스템은 최소 아래 두 출력 모드를 지원해야 한다.
+
+- `final-json`
+- `event-stream`
+
+#### FR-6. 실행 결과 수집
+
+시스템은 아래 결과를 반환해야 한다.
+
+- stdout
+- stderr
+- exitCode
+- parsed output if available
+- raw event stream if available
+
+#### FR-7. 도구별 adapter 분리
+
+각 도구별 명령 생성 로직은 독립 adapter로 분리되어야 한다.
+
+#### FR-8. 병렬 실행 대응 가능 구조
+
+초기 구현에서 병렬 실행 자체를 꼭 제공하지 않더라도, 실행 단위가 독립적이라 이후 병렬 scheduler를 붙일 수 있어야 한다.
+
+### 6. 비기능 요구사항
+
+#### NFR-1. 예측 가능성
+
+같은 입력 파일과 같은 옵션이면 가능한 한 동일한 실행 계약을 제공해야 한다.
+
+#### NFR-2. 추적 가능성
+
+최소한 아래 디버깅 정보가 남아야 한다.
+
+- 어떤 도구를 사용했는지
+- 어떤 cwd에서 실행했는지
+- 어떤 입력 파일이 사용됐는지
+- 어떤 최종 프롬프트가 생성됐는지
+- 어떤 stdout/stderr가 반환됐는지
+
+#### NFR-3. 확장 가능성
+
+향후 추가 CLI 도구가 생겨도 adapter만 추가하면 붙일 수 있어야 한다.
+
+#### NFR-4. 안전성
+
+병렬 실행 또는 반복 실행 시 작업 디렉터리 충돌을 피할 수 있어야 한다.
+
+### 7. 제안 데이터 모델
+
+```ts
+export type ToolKind = 'claude' | 'codex' | 'gemini';
+export type OutputMode = 'final-json' | 'event-stream';
+
+export interface PromptFiles {
+  personaFile?: string;
+  taskFile: string;
+  contextFiles?: string[];
+  extraInstructions?: string[];
+}
+
+export interface RunRequest {
+  tool: ToolKind;
+  cwd: string;
+  promptFiles: PromptFiles;
+  outputMode: OutputMode;
+  model?: string;
+  extraArgs?: string[];
+  timeoutMs?: number;
+  runId?: string;
+}
+
+export interface RunArtifacts {
+  compositePrompt: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  parsedOutput?: unknown;
+  events?: unknown[];
+}
+```
+
+### 8. 제안 모듈 구조
+
+```ts
+/core
+  prompt-builder.ts
+  output-parser.ts
+  run-types.ts
+/adapters
+  claude-adapter.ts
+  codex-adapter.ts
+  gemini-adapter.ts
+/runtime
+  exec-runner.ts
+  workspace-isolation.ts
+/index.ts
+```
+
+### 9. 제안 처리 흐름
+
+1. `RunRequest` 수신
+2. 입력 파일 존재 여부 검증
+3. 파일 읽기
+4. 합성 프롬프트 생성
+5. tool adapter 선택
+6. 실행 명령/인자 생성
+7. cwd에서 CLI 실행
+8. stdout/stderr 수집
+9. output mode에 따라 파싱
+10. `RunArtifacts` 반환
+
+### 10. 표준 프롬프트 합성 포맷 초안
+
+```text
+[Persona]
+...
+[/Persona]
+
+[Task]
+...
+[/Task]
+
+[Context File: path/to/file]
+...
+[/Context File]
+
+[Extra Instructions]
+Return valid JSON only.
+[/Extra Instructions]
+```
+
+### 11. 도구별 adapter 계약
+
+#### Claude adapter
+
+역할:
+- Claude Code 실행 명령 생성
+- 출력 형식 옵션 매핑
+- 필요 시 print/headless 옵션 매핑
+
+예상 책임:
+- `claude` 명령 사용
+- `-p` 또는 print mode 기반 실행
+- json/stream-json 옵션 연결
+
+#### Codex adapter
+
+역할:
+- `codex exec` 기반 명령 생성
+- JSONL 스트림과 최종 메시지 처리 기준 정의
+
+예상 책임:
+- `codex exec`
+- `-C` cwd 적용
+- `--json` 여부 결정
+- stdin 기반 prompt 전달
+
+#### Gemini adapter
+
+역할:
+- `gemini` headless 실행 명령 생성
+- output format 옵션 매핑
+
+예상 책임:
+- `-p` 또는 stdin 기반 입력 처리
+- `--output-format` 적용
+- 필요 시 include-directories 연결
+
+### 12. 출력 파싱 정책 초안
+
+#### final-json
+
+- 가능하면 최종 결과를 단일 JSON 객체로 정규화한다.
+- 도구별 원본 출력이 다르면 wrapper가 normalize 한다.
+
+예상 반환 스키마:
+
+```ts
+interface FinalJsonResult {
+  tool: ToolKind;
+  success: boolean;
+  response: unknown;
+  rawText?: string;
+  usage?: unknown;
+}
+```
+
+#### event-stream
+
+- JSONL 또는 stream-json 형태의 이벤트를 배열 또는 iterator 형태로 제공한다.
+- 이벤트 원형 보존을 우선한다.
+
+예상 반환 스키마:
+
+```ts
+interface EventStreamResult {
+  tool: ToolKind;
+  success: boolean;
+  events: unknown[];
+}
+```
+
+### 13. 오류 처리 정책 초안
+
+아래 오류를 구분한다.
+
+- 입력 파일 없음
+- CLI 바이너리 없음
+- CLI 실행 실패
+- 타임아웃
+- stdout 파싱 실패
+- 출력 형식 불일치
+
+예상 오류 타입:
+
+```ts
+class InputFileError extends Error {}
+class ToolNotFoundError extends Error {}
+class ToolExecutionError extends Error {}
+class OutputParseError extends Error {}
+class TimeoutError extends Error {}
+```
+
+### 14. 병렬 실행 고려사항
+
+병렬 실행 시 아래 전략을 기본 원칙으로 둔다.
+
+- 각 실행은 별도 working directory 또는 worktree 사용
+- runId 기준 임시 디렉터리 생성 가능
+- stdout/stderr는 runId별 저장 가능
+- 산출 파일 경로 충돌 방지
+
+초기 구현은 단일 실행 API부터 시작하고, 이후 아래 형태로 확장 가능해야 한다.
+
+```ts
+async function runMany(requests: RunRequest[]): Promise<RunArtifacts[]>;
+```
+
+### 15. 미결정 항목
+
+주인님 검토가 필요한 항목:
+
+- 출력 표준을 `final-json` 중심으로 할지 `event-stream` 중심으로 할지
+- 합성 프롬프트 원문을 로그로 항상 남길지 여부
+- 도구별 고급 옵션을 어느 수준까지 공통 인터페이스에 노출할지
+- cwd 외에 `additionalDirectories` 같은 개념을 공통화할지 여부
+- 이미지 입력을 v1 범위에 넣을지 여부
+- 세션 재개 기능을 v1 범위에 넣을지 여부
+
+### 16. 권장 구현 순서
+
+1. 타입 정의
+2. prompt-builder 구현
+3. codex adapter 구현
+4. gemini adapter 구현
+5. claude adapter 구현
+6. output parser 구현
+7. 단일 실행 runner 구현
+8. fixture 기반 테스트 작성
+9. 병렬 실행 확장 검토
+
+### 17. 검토 체크리스트
+
+개발 시작 전 아래를 확정해야 한다.
+
+- [ ] v1 범위에 포함할 도구를 최종 확정
+- [ ] 표준 출력 스키마 확정
+- [ ] 프롬프트 합성 포맷 확정
+- [ ] 로그 저장 정책 확정
+- [ ] 병렬 실행 범위 확정
+- [ ] 테스트 전략 확정
+- [ ] 구현 언어 및 패키지 구조 확정
+
+### 18. 현재 권장 결론
+
+현재까지의 분석 기준으로는 아래 방향이 가장 안전하다.
+
+- 공통 입력은 `파일 경로 집합`으로 받는다.
+- 내부에서는 `합성 프롬프트`로 변환한다.
+- 실행은 `tool adapter + cwd` 구조로 분리한다.
+- 결과는 `stdout 기반 JSON`으로 수집한다.
+- 병렬성은 `독립 작업 디렉터리` 전략으로 해결한다.
+
+이 spec은 검토 및 수정 전의 초안이며, 이후 실제 구현 요청 시 기준 문서로 사용한다.
