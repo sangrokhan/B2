@@ -184,8 +184,11 @@ Return valid JSON only.
 
 ## 공통 인터페이스 초안
 
+초기 분석은 세 도구를 모두 비교했지만, *v1 구현 범위는 `codex` 와 `gemini` 두 도구만 포함*한다.
+Claude Code는 비교 분석 결과만 남기고, 실제 adapter 구현은 후속 버전으로 미룬다.
+
 ```ts
-export type AiCodingTool = 'claude' | 'codex' | 'gemini';
+export type AiCodingTool = 'codex' | 'gemini';
 
 export interface PromptSpec {
   personaFile?: string;
@@ -198,7 +201,7 @@ export interface RunRequest {
   tool: AiCodingTool;
   cwd: string;
   prompt: PromptSpec;
-  outputFormat: 'json' | 'stream-json';
+  outputFormat: 'final-json';
   model?: string;
   extraArgs?: string[];
 }
@@ -462,11 +465,12 @@ Claude Code, Codex CLI, Gemini CLI를 하나의 공통 인터페이스 아래에
 
 #### FR-1. 도구 선택
 
-시스템은 다음 도구를 지원해야 한다.
+v1 시스템은 다음 도구를 지원해야 한다.
 
-- Claude Code
 - Codex CLI
 - Gemini CLI
+
+Claude Code는 분석 대상에는 포함하지만, 구현 범위에서는 제외한다.
 
 #### FR-2. 작업 디렉터리 지정
 
@@ -546,7 +550,7 @@ v1의 표준 출력은 `final-json` 으로 고정한다.
 ### 7. 제안 데이터 모델
 
 ```ts
-export type ToolKind = 'claude' | 'codex' | 'gemini';
+export type ToolKind = 'codex' | 'gemini';
 
 export interface PromptFiles {
   personaFile?: string;
@@ -578,17 +582,19 @@ export interface RunArtifacts {
 
 ### 8. 제안 모듈 구조
 
+v1에서는 parser를 별도 모듈로 분리하지 않고, runner 내부의 얇은 `normalizeFinalJson()` 유틸로 처리한다.
+이 단계에서는 복잡한 파싱 계층보다, *최종 JSON 추출과 최소 검증*만 있으면 충분하다.
+
 ```ts
 /core
   prompt-builder.ts
-  output-parser.ts
   run-types.ts
 /adapters
-  claude-adapter.ts
   codex-adapter.ts
   gemini-adapter.ts
 /runtime
   exec-runner.ts
+  final-json.ts
   workspace-isolation.ts
 /index.ts
 ```
@@ -628,20 +634,6 @@ Return valid JSON only.
 
 ### 11. 도구별 adapter 계약
 
-#### Claude adapter
-
-역할:
-- Claude Code 실행 명령 생성
-- 출력 형식 옵션 매핑
-- 필요 시 print/headless 옵션 매핑
-- 모델 지정 옵션 매핑
-
-예상 책임:
-- `claude` 명령 사용
-- `-p` 또는 print mode 기반 실행
-- `--model` 연결
-- final-json 확보를 위한 출력 옵션 연결
-
 #### Codex adapter
 
 역할:
@@ -669,15 +661,18 @@ Return valid JSON only.
 - `--output-format` 적용
 - v1에서는 `include-directories` 공통화 없이 동작
 
-### 12. 출력 파싱 정책 초안
+### 12. final-json 정규화 정책
 
 v1은 `final-json` 만 표준 지원한다.
 
-#### final-json
+별도 parser 계층은 두지 않고, runner 내부의 얇은 정규화 단계에서 아래만 수행한다.
 
-- 가능하면 최종 결과를 단일 JSON 객체로 정규화한다.
-- 도구별 원본 출력이 다르면 wrapper가 normalize 한다.
-- 내부적으로 스트림이나 JSONL을 사용하더라도 외부 계약은 final-json 으로 맞춘다.
+- stdout에서 최종 JSON 블록 추출
+- `JSON.parse` 수행
+- 최소 schema 검증
+- 공통 결과 객체로 감싸기
+
+즉, 여기서 필요한 것은 범용 parser라기보다 *final-json 정규화 유틸*이다.
 
 예상 반환 스키마:
 
@@ -733,12 +728,19 @@ async function runMany(requests: RunRequest[]): Promise<RunArtifacts[]>;
 
 이번 검토에서 아래처럼 결정한다.
 
+- v1 구현 범위의 도구는 `codex`, `gemini` 로 한정한다.
+- Claude Code는 비교 분석 결과만 유지하고, adapter 구현은 후속 버전으로 미룬다.
+- 입력은 `persona/task/context files` 를 읽어 합성 프롬프트로 만든 뒤 stdin으로 전달한다.
 - 출력 표준은 `final-json` 으로 고정한다.
+- parser는 별도 모듈로 분리하지 않고, runner 내부의 얇은 final-json 정규화 유틸로 처리한다.
 - 로그는 작업 단위(run/task) JSON 파일로 저장한다.
 - 도구별 고급 옵션은 공통 인터페이스에 최소한만 노출하고, 예외 상황은 `extraArgs` 로 처리한다.
 - `additionalDirectories` 는 v1 공통 인터페이스에 넣지 않는다.
 - 이미지 입력은 v1 범위에서 제외한다.
 - 세션 재개 기능은 v1 범위에서 제외한다.
+- v1은 단일 실행 컨셉 증명에 집중하고, 병렬 실행은 후속 확장으로 둔다.
+- 구현 언어는 TypeScript를 사용한다.
+- 테스트는 fixture 기반 테스트와 실제 CLI 연동 테스트까지 포함한다.
 
 ### 16. 권장 구현 순서
 
@@ -746,32 +748,35 @@ async function runMany(requests: RunRequest[]): Promise<RunArtifacts[]>;
 2. prompt-builder 구현
 3. codex adapter 구현
 4. gemini adapter 구현
-5. claude adapter 구현
-6. output parser 구현
-7. 단일 실행 runner 구현
-8. fixture 기반 테스트 작성
+5. 단일 실행 runner 구현
+6. final-json 정규화 유틸 구현
+7. fixture 기반 테스트 작성
+8. 실제 CLI 연동 테스트 작성
 9. 병렬 실행 확장 검토
 
 ### 17. 남은 검토 체크리스트
 
-아래는 이미 결정된 항목이 아니라, 아직 추가 확정이 필요한 항목만 남긴다.
+현재 기준으로 *v1 핵심 결정사항은 모두 확정*되었다.
 
-- [ ] v1 범위에 포함할 도구를 최종 확정
-- [ ] 프롬프트 합성 포맷 확정
-- [ ] 병렬 실행 범위 확정
-- [ ] 테스트 전략 확정
-- [ ] 구현 언어 및 패키지 구조 확정
+후속 검토 항목만 남긴다.
+
+- [ ] 실제 CLI 출력 샘플을 기준으로 final-json 정규화 규칙을 보정할지 검토
+- [ ] 병렬 실행 확장 시 worktree 전략과 임시 디렉터리 전략 중 기본값 선택
+- [ ] Claude adapter를 후속 버전에 어떤 조건에서 다시 포함할지 검토
 
 ### 18. 현재 권장 결론
 
-현재까지의 분석 기준으로는 아래 방향이 가장 안전하다.
+현재 확정된 v1 방향은 아래와 같다.
 
 - 공통 입력은 `파일 경로 집합`으로 받는다.
 - 내부에서는 `합성 프롬프트`로 변환한다.
 - 실행은 `tool adapter + cwd` 구조로 분리한다.
+- v1 도구 범위는 `codex`, `gemini` 로 한정한다.
 - 결과는 `final-json` 으로 정규화하고, 로그는 작업 단위 JSON 파일로 남긴다.
+- final-json 처리는 별도 parser 계층이 아니라 runner 내부 정규화 유틸로 처리한다.
 - 도구별 고급 옵션은 최소 노출 원칙을 유지하고, 필요 시 `extraArgs` 로 우회한다.
 - `additionalDirectories`, 이미지 입력, 세션 재개는 v1 범위에서 제외한다.
-- 병렬성은 `독립 작업 디렉터리` 전략으로 해결한다.
+- v1은 단일 실행 컨셉 증명과 실제 CLI 연동 테스트까지를 목표로 한다.
+- 병렬성은 후속 단계에서 `독립 작업 디렉터리` 전략으로 확장한다.
 
-이 spec은 현재까지 합의된 내용을 반영한 구현 기준 문서이며, 남은 항목은 체크리스트 기준으로 추가 확정한다.
+이 spec은 현재까지 합의된 v1 구현 기준 문서다.
