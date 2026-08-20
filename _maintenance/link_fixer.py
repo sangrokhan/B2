@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""
+B2 Vault Link Fixer
+- 깨진 wikilink → 유사 파일명으로 자동 수정 (difflib 기반)
+- 불필요한 중복 wikilink 첫 번째 제외 제거
+- 재귀/자기참조 링크 제거
+- index.md 누락 항목 자동 추가
+"""
+from __future__ import annotations
+import difflib
+import os
+import re
+import sys
+from pathlib import Path
+
+VAULT = Path(os.environ.get("B2_VAULT", "/home/han/B2"))
+IGNORE_DIRS = {"_maintenance", "Templates", ".git", ".obsidian"}
+WIKILINK_RE = re.compile(r"\[\[([^\]|#]+?)(\|[^\]]*)?(#[^\]]*)?\]\]")
+
+
+def all_stems() -> dict[str, Path]:
+    """stem → 경로 맵 (Obsidian shortest-path 방식)"""
+    result = {}
+    for p in VAULT.rglob("*.md"):
+        parts = set(p.relative_to(VAULT).parts)
+        if parts & IGNORE_DIRS:
+            continue
+        result[p.stem] = p
+        # slug도 등록
+        result[str(p.relative_to(VAULT).with_suffix(""))] = p
+    return result
+
+
+def suggest_fix(link: str, stems: dict[str, Path]) -> str | None:
+    """유사 파일명 제안 (0.6 이상 유사도)"""
+    matches = difflib.get_close_matches(link, stems.keys(), n=1, cutoff=0.6)
+    if matches:
+        return matches[0]
+    return None
+
+
+def fix_links_in_file(path: Path, stems: dict[str, Path]) -> tuple[str, list[str]]:
+    """파일 내 링크 수정. (새 content, 변경 로그) 반환"""
+    content = path.read_text(encoding="utf-8")
+    source_slug = str(path.relative_to(VAULT).with_suffix(""))
+    changes = []
+    seen_links: dict[str, int] = {}
+
+    def replace_link(m: re.Match) -> str:
+        link = m.group(1).strip()
+        alias = m.group(2) or ""
+        anchor = m.group(3) or ""
+
+        # 자기 참조 링크 제거
+        if link == path.stem or link == source_slug:
+            changes.append(f"자기참조 제거: [[{link}]]")
+            return alias[1:] if alias else link  # alias만 텍스트로 남김
+
+        # 링크 존재 확인
+        exists = link in stems or (link + ".md") in [str(p.relative_to(VAULT)) for p in stems.values()]
+        if not exists:
+            fix = suggest_fix(link, stems)
+            if fix:
+                changes.append(f"링크 수정: [[{link}]] → [[{fix}]]")
+                return f"[[{fix}{alias}{anchor}]]"
+            else:
+                # 수정 불가 → 텍스트로 강등
+                changes.append(f"깨진 링크 텍스트 강등: [[{link}]]")
+                return alias[1:] if alias else link
+
+        # 중복 링크 처리 (처음 1회만 유지)
+        seen_links[link] = seen_links.get(link, 0) + 1
+        if seen_links[link] > 1:
+            changes.append(f"중복 링크 제거: [[{link}]] (#{seen_links[link]})")
+            return alias[1:] if alias else link
+
+        return m.group(0)  # 변경 없음
+
+    new_content = WIKILINK_RE.sub(replace_link, content)
+    return new_content, changes
+
+
+def update_index(index_path: Path, stems: dict[str, Path], vault: Path) -> list[str]:
+    """index.md에 누락된 Knowledge/Projects/Dev 파일 추가"""
+    if not index_path.exists():
+        return []
+
+    content = index_path.read_text(encoding="utf-8")
+    changes = []
+    TRACK_DIRS = ["Knowledge", "Projects", "Dev"]
+
+    for p in vault.rglob("*.md"):
+        parts = p.relative_to(vault).parts
+        if not parts or parts[0] not in TRACK_DIRS:
+            continue
+        if p.name in {"README.md", "index.md"}:
+            continue
+        parts_set = set(parts)
+        if parts_set & IGNORE_DIRS:
+            continue
+
+        slug_str = str(p.relative_to(vault).with_suffix(""))
+        stem = p.stem
+
+        if f"[[{slug_str}" not in content and f"[[{stem}" not in content and stem not in content:
+            # 해당 섹션 찾아서 추가
+            section = parts[0]  # Knowledge, Projects, Dev
+            section_header = f"## 🧠 Knowledge" if section == "Knowledge" else \
+                             f"## 🚀 Projects" if section == "Projects" else \
+                             f"## 📁 Dev Notes"
+            entry = f"- [[{slug_str}|{stem}]]"
+
+            if section_header in content:
+                # 섹션 다음 줄에 추가
+                content = content.replace(
+                    section_header + "\n",
+                    section_header + "\n" + entry + "\n"
+                )
+                changes.append(f"index.md 추가: {slug_str}")
+            else:
+                # 섹션 없으면 맨 끝에 추가
+                content = content.rstrip() + f"\n\n{section_header}\n{entry}\n"
+                changes.append(f"index.md 새 섹션 추가: {slug_str}")
+
+    if changes:
+        index_path.write_text(content, encoding="utf-8")
+
+    return changes
+
+
+def main():
+    stems = all_stems()
+    total_changes = []
+
+    # 1. 링크 수정 (자기참조, 깨진 링크, 중복)
+    for p in VAULT.rglob("*.md"):
+        parts = set(p.relative_to(VAULT).parts)
+        if parts & IGNORE_DIRS:
+            continue
+        new_content, changes = fix_links_in_file(p, stems)
+        if changes:
+            p.write_text(new_content, encoding="utf-8")
+            for ch in changes:
+                print(f"  [{p.relative_to(VAULT)}] {ch}")
+                total_changes.append(ch)
+
+    # 2. index.md 업데이트
+    index_changes = update_index(VAULT / "index.md", stems, VAULT)
+    for ch in index_changes:
+        print(f"  [index.md] {ch}")
+        total_changes.append(ch)
+
+    print(f"\n총 변경: {len(total_changes)}건")
+
+
+if __name__ == "__main__":
+    main()

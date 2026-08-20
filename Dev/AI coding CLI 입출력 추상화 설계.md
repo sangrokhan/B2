@@ -2,11 +2,7 @@
 type: dev-note
 topic: AI coding CLI 입출력 추상화 설계
 created: 2026-04-09 09:31
-tags:
-  - dev
-  - ai-coding
-  - cli
-  - abstraction
+tags: [dev, ai-coding, cli, abstraction, 실행, 파일, 공통, 가능, adapter, json, 지정]
 ---
 
 # AI coding CLI 입출력 추상화 설계

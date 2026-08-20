@@ -58,7 +58,7 @@ B2/
 
 ## Rules for AI Tools
 
-1. Wikilink(`[[note]]`)를 보면 vault에서 해당 파일을 검색해 읽을 것
+1. Wikilink(`note`)를 보면 vault에서 해당 파일을 검색해 읽을 것
 2. 새 결정/아이디어는 `Daily Notes/YYYY-MM-DD.md`에 기록됨
 3. 정제된 지식은 `Knowledge/` 하위에 위치
 4. 이 파일(`AGENTS.md`)은 항상 최신 상태 유지

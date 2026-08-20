@@ -10,21 +10,21 @@ title: Sangrok B2
 ---
 
 ## 📅 Daily Notes
-- [[Daily Notes/2026-08-20|오늘 노트]]
+- [[2026-08-20|오늘 노트]]
 
 ---
 
 ## 🚀 Projects
-- [[Projects/ai-imps/README|ai-imps]] — AI 알고리즘 구현/연구
-- [[Projects/fin_calculator/README|fin_calculator]] — React 금융 계산기
-- [[Projects/remote_work/README|remote_work/stat_graph_vis]] — 통계 그래프 시각화
+- ai-imps — AI 알고리즘 구현/연구
+- fin_calculator — React 금융 계산기
+- remote_work/stat_graph_vis — 통계 그래프 시각화
 
 ---
 
 ## 🧠 Knowledge
-- [[Knowledge/Dev/|개발 지식]]
-- [[Knowledge/Ideas/|아이디어]]
-- [[Knowledge/Business/|비즈니스]]
+- 개발 지식
+- 아이디어
+- 비즈니스
 
 ---
 

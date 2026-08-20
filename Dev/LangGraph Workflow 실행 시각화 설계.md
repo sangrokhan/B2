@@ -2,13 +2,7 @@
 type: dev-note
 topic: LangGraph Workflow 실행 시각화 설계
 created: 2026-04-14 14:43
-tags:
-  - dev
-  - langgraph
-  - workflow
-  - visualization
-  - frontend
-  - backend
+tags: [dev, langgraph, workflow, visualization, frontend, backend, 실행, 조회, run, schema, 이벤트]
 ---
 
 # LangGraph Workflow 실행 시각화 설계
