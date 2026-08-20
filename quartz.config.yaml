@@ -13,6 +13,9 @@ configuration:
     - _templates
     - .obsidian
     - .github
+    - quartz.config.yaml
+    - "*.base"
+    - "*.canvas"
   theme:
     fontOrigin: googleFonts
     cdnCaching: true
