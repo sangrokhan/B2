@@ -1,3 +1,4 @@
+<!-- maintenance: 이 페이지는 220줄로 분할 권고 (2026-08-21) -->
 ---
 type: dev-note
 topic: LangGraph Workflow 실행 시각화 설계

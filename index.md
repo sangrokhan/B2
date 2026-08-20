@@ -29,5 +29,6 @@ title: Sangrok B2
 ---
 
 ## 📁 Dev Notes
+- [[Dev/README|Dev 폴더 인덱스]]
 - [[Dev/AI coding CLI 입출력 추상화 설계|AI coding CLI I/O 추상화]]
 - [[Dev/LangGraph Workflow 실행 시각화 설계|LangGraph Workflow 시각화]]
