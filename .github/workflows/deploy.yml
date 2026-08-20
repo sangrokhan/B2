@@ -22,7 +22,7 @@ jobs:
       - name: Checkout vault
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # git 날짜 정보 전체 필요
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,31 +30,33 @@ jobs:
           node-version: 22
 
       - name: Clone Quartz
-        run: git clone https://github.com/jackyzha0/quartz.git quartz-build
+        run: git clone https://github.com/jackyzha0/quartz.git /tmp/quartz-build
 
       - name: Install Quartz dependencies
-        working-directory: quartz-build
+        working-directory: /tmp/quartz-build
         run: npm install --legacy-peer-deps
 
       - name: Copy vault content to Quartz
         run: |
-          rm -rf quartz-build/content
-          cp -r . quartz-build/content
-          rm -rf quartz-build/content/.git
-          rm -rf quartz-build/content/.github
-          rm -rf quartz-build/content/.obsidian
+          rm -rf /tmp/quartz-build/content
+          mkdir -p /tmp/quartz-build/content
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.obsidian' \
+            . /tmp/quartz-build/content/
 
       - name: Copy Quartz config
-        run: cp quartz.config.yaml quartz-build/quartz.config.yaml
+        run: cp quartz.config.yaml /tmp/quartz-build/quartz.config.yaml
 
       - name: Build site
-        working-directory: quartz-build
+        working-directory: /tmp/quartz-build
         run: npx quartz build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: quartz-build/public
+          path: /tmp/quartz-build/public
 
   deploy:
     environment:
