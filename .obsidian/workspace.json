@@ -1,0 +1,219 @@
+{
+  "main": {
+    "id": "9a43b22e902da31c",
+    "type": "split",
+    "children": [
+      {
+        "id": "6eb5b541afbd6875",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "04020e1e35cb12fd",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "cd530fcae5462586",
+    "type": "split",
+    "children": [
+      {
+        "id": "70e135e4e2055648",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1acde160f38391af",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          },
+          {
+            "id": "b033c4d0c4354f9d",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "c485cb5d2a872286",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "7eac2cad91963395",
+    "type": "split",
+    "children": [
+      {
+        "id": "cfdbcdce7b72c424",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e6c38e35d35df10c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "b4c3678c3ac4ba83",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
+          },
+          {
+            "id": "4c3c232ffe16fef1",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "cc1a9276b7278a67",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "9cfaba77dca439fd",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "a5638ddab4b1dfbc",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "bases:Create new base": false,
+      "obsidian-git:Open Git source control": false
+    }
+  },
+  "active": "04020e1e35cb12fd",
+  "lastOpenFiles": [
+    "_context/AGENTS.md",
+    "Templates/Dev Decision.md",
+    "Templates/Idea.md",
+    "Dashboard.md",
+    "Templates/Daily Note.md",
+    "_context",
+    "Templates",
+    "Projects/remote_work",
+    "Projects/fin_calculator",
+    "Projects/ai-imps",
+    "Projects",
+    "Knowledge/Ideas",
+    "Knowledge/Dev",
+    "Knowledge/Business",
+    "Knowledge",
+    "Untitled 2.canvas",
+    "무제.md",
+    "Dev/README.md",
+    "Dev/AI coding CLI 입출력 추상화 설계.md",
+    "Daily Notes/2026-04-09.md",
+    "Inbox/Conversations/2026-04-09 AI coding CLI 입출력 추상화 설계.md",
+    "Untitled 1.canvas",
+    "Daily Notes/2026-04-08.md",
+    "Untitled.canvas",
+    "Inbox/Conversations/2026-04-08-test-push.md"
+  ]
+}
