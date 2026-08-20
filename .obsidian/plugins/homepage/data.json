@@ -1,18 +1,24 @@
 {
-  "version": "4.0",
-  "defaultNote": "Dashboard",
-  "workspaceEnabled": false,
-  "hasRibbonIcon": true,
-  "openMode": "replace",
-  "autoCreate": false,
-  "autoScroll": false,
-  "pin": false,
-  "openWhenEmpty": true,
-  "commands": [],
-  "alwaysApply": false,
-  "manualOpenMode": "retain",
-  "revertView": true,
-  "refreshDataview": false,
-  "separateMobile": false,
-  "mobileDefault": ""
+  "version": 4,
+  "homepages": {
+    "Main Homepage": {
+      "version": "4.0",
+      "hasRibbonIcon": true,
+      "openMode": "replace",
+      "autoCreate": false,
+      "autoScroll": false,
+      "pin": false,
+      "openWhenEmpty": true,
+      "commands": [],
+      "alwaysApply": false,
+      "manualOpenMode": "retain",
+      "revertView": true,
+      "refreshDataview": false,
+      "separateMobile": false,
+      "mobileDefault": "",
+      "value": "Dashboard",
+      "kind": "File"
+    }
+  },
+  "separateMobile": false
 }

@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "6eb5b541afbd6875",
+        "id": "955afeab8b0de091",
         "type": "tabs",
         "children": [
           {
-            "id": "04020e1e35cb12fd",
+            "id": "5ea7d83015b319f7",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "Dashboard.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Dashboard"
             }
           }
         ]
@@ -35,7 +39,10 @@
             "type": "leaf",
             "state": {
               "type": "bookmarks",
-              "state": {},
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
               "icon": "lucide-bookmark",
               "title": "Bookmarks"
             }
@@ -74,8 +81,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "7eac2cad91963395",
@@ -174,10 +180,12 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
+      "homepage:Open homepage": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "templates:Insert template": false,
@@ -188,14 +196,16 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "04020e1e35cb12fd",
+  "active": "5ea7d83015b319f7",
   "lastOpenFiles": [
+    "Dashboard.md",
+    "2026-08-20.md",
+    "Untitled.base",
     "index.md",
     "quartz.config.yaml",
     "_context/AGENTS.md",
     "Templates/Dev Decision.md",
     "Templates/Idea.md",
-    "Dashboard.md",
     "Templates/Daily Note.md",
     "_context",
     "Templates",
@@ -205,7 +215,6 @@
     "Projects",
     "Knowledge/Ideas",
     "Knowledge/Dev",
-    "Knowledge/Business",
     "Untitled 2.canvas",
     "무제.md",
     "Dev/README.md",
