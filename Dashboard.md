@@ -10,7 +10,6 @@ type: dashboard
 ---
 
 ## 📅 Recent Daily Notes
-- [[2026-08-20]]
 
 ---
 

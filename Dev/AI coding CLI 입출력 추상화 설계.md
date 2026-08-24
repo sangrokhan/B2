@@ -1,4 +1,3 @@
-<!-- maintenance: 이 페이지는 778줄로 분할 권고 (2026-08-21) -->
 ---
 type: dev-note
 topic: AI coding CLI 입출력 추상화 설계

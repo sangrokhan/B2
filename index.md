@@ -10,7 +10,6 @@ title: Sangrok B2
 ---
 
 ## 📅 Daily Notes
-- [[2026-08-20|오늘 노트]]
 
 ---
 
