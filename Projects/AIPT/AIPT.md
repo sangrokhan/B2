@@ -1,7 +1,7 @@
 ---
 type: topic-doc
 title: AIPT 프로젝트
-tags: [AIPT, TCP, Vegas, architecture, dev, docker, incident, local-llm, refactor, review, sse, testing, todo, ui, aipt, tcp, congestion, topic-doc, slack, c0acdpuakn3, 커밋]
+tags: [AIPT, TCP, Vegas, aipt, architecture, bugfix, c0acdpuakn3, congestion, dev, docker, incident, local-llm, record, refactor, review, slack, sse, tcp, testing, todo, topic-doc, ui, web, 커밋]
 created: 2026-08-31
 updated: 2026-08-31
 split: false
@@ -205,3 +205,28 @@ split: false
 - [ ] TODO #6 원본 tcp_congestion/ 디렉터리 삭제 또는 archive 방침 확정 필요 (디스크 64M 잔존)
 - [ ] (선택) Vegas 기반 idle-RTT 보존 실험 모듈 제작 여부 — 사용자 확인 대기 중이었음
 <!-- topic-doc:end:slack:C0ACDPUAKN3:20260827_141514_b62a3d96 -->
+
+### 11:20 record_id 누락 버그 수정 (records/ 디렉토리 미연동)
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_112032_e9006621 -->
+<!-- chapter: 이슈해결 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_112032_e9006621
+
+#### Summary
+- AIPT 웹 UI에서 Record 선택 시 "record_id 없음" 오류가 나는 문제의 원인을 조사
+- 원인: 손으로 작성한 시나리오(records/perf.json, records/smoke.json — aipt.backends.mock.records.RECORD_DIR)와 웹 UI가 읽는 data/public_ai_records/가 서로 다른 디렉토리였고, Record 드롭다운/로더가 오직 data/public_ai_records/만 읽도록 구현되어 있었음
+- records/ 디렉토리는 Docker 이미지에 COPY조차 되어있지 않아 컨테이너 안에서도 접근 불가했음
+- 두 디렉토리를 union해서 드롭다운에 표시하고, record_id 로딩도 두 경로를 순차 탐색하도록 수정(캡처된 실제 응답 우선)
+- 신규 테스트 4개 추가(tests/web/test_scenario_records.py), 실컨테이너로 mock/local_llm 양쪽 동작 검증(mock은 저장된 답변 그대로 재생, local_llm은 질문만 record에서 가져오고 답은 실제 모델 응답 사용)
+- 전체 테스트 466 passed, 1 skipped — 회귀 없음
+
+#### Decisions
+- routes_config.public_ai_record_names(): data/public_ai_records/ + records/ 유니언하여 드롭다운에 모두 노출
+- routes_run._load_record_scenario(): record_id를 두 디렉토리에서 순차 탐색(캡처된 실제 레코드가 손작성 시나리오보다 우선)
+- docker/Dockerfile.web에 records/ COPY 추가, docker-compose.yml에 ./records 볼륨 마운트 추가(재빌드 없이 반영)
+- Sangrok 승인: Input=Record는 항상 record의 실제 질문을 백엔드로 보내고, Mock만 record의 답변을 그대로 서빙(public_ai/local_llm은 항상 실제 모델 응답 사용)
+- 커밋 fb14702b로 main에 직접 푸시 완료 (github.com/sangrokhan/remote_work)
+
+#### TODO
+- [ ] MIGRATION.md에 이번 record_id 수정 작업 기록 여부 결정 필요 (대화 종료 시점에 미확정)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_112032_e9006621 -->
