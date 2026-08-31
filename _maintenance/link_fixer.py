@@ -40,43 +40,63 @@ def suggest_fix(link: str, stems: dict[str, Path]) -> str | None:
 
 
 def fix_links_in_file(path: Path, stems: dict[str, Path]) -> tuple[str, list[str]]:
-    """파일 내 링크 수정. (새 content, 변경 로그) 반환"""
+    """파일 내 링크 수정. (새 content, 변경 로그) 반환.
+
+    중복 링크 제거는 "entry 블록" 단위로만 적용한다 (Daily Note/Topic Doc처럼
+    한 파일에 conversation-to-obsidian:start/end 또는 topic-doc:start/end로
+    구분된 여러 독립 엔트리가 있을 수 있고, 각 엔트리가 같은 문서를 가리키는
+    Related 링크를 갖는 것은 의도된 정상 패턴이라 파일 전체 기준으로 dedup하면
+    안 된다).
+    """
     content = path.read_text(encoding="utf-8")
     source_slug = str(path.relative_to(VAULT).with_suffix(""))
     changes = []
-    seen_links: dict[str, int] = {}
 
-    def replace_link(m: re.Match) -> str:
-        link = m.group(1).strip()
-        alias = m.group(2) or ""
-        anchor = m.group(3) or ""
+    # 엔트리 경계(각 entry 블록의 start 마커) 기준으로 콘텐츠를 조각내어
+    # 조각별로 독립적인 seen_links 카운터를 사용한다. 마커가 없는 파일은
+    # 전체를 하나의 조각으로 취급(기존 동작과 동일).
+    entry_boundary = re.compile(
+        r"(?=<!-- (?:conversation-to-obsidian|topic-doc):start:)"
+    )
+    segments = entry_boundary.split(content)
 
-        # 자기 참조 링크 제거
-        if link == path.stem or link == source_slug:
-            changes.append(f"자기참조 제거: [[{link}]]")
-            return alias[1:] if alias else link  # alias만 텍스트로 남김
+    def make_replacer(seen_links: dict[str, int]):
+        def replace_link(m: re.Match) -> str:
+            link = m.group(1).strip()
+            alias = m.group(2) or ""
+            anchor = m.group(3) or ""
 
-        # 링크 존재 확인
-        exists = link in stems or (link + ".md") in [str(p.relative_to(VAULT)) for p in stems.values()]
-        if not exists:
-            fix = suggest_fix(link, stems)
-            if fix:
-                changes.append(f"링크 수정: [[{link}]] → [[{fix}]]")
-                return f"[[{fix}{alias}{anchor}]]"
-            else:
-                # 수정 불가 → 텍스트로 강등
-                changes.append(f"깨진 링크 텍스트 강등: [[{link}]]")
+            # 자기 참조 링크 제거
+            if link == path.stem or link == source_slug:
+                changes.append(f"자기참조 제거: [[{link}]]")
+                return alias[1:] if alias else link  # alias만 텍스트로 남김
+
+            # 링크 존재 확인
+            exists = link in stems or (link + ".md") in [str(p.relative_to(VAULT)) for p in stems.values()]
+            if not exists:
+                fix = suggest_fix(link, stems)
+                if fix:
+                    changes.append(f"링크 수정: [[{link}]] → [[{fix}]]")
+                    return f"[[{fix}{alias}{anchor}]]"
+                else:
+                    # 수정 불가 → 텍스트로 강등
+                    changes.append(f"깨진 링크 텍스트 강등: [[{link}]]")
+                    return alias[1:] if alias else link
+
+            # 중복 링크 처리 (같은 엔트리 블록 내에서 처음 1회만 유지)
+            seen_links[link] = seen_links.get(link, 0) + 1
+            if seen_links[link] > 1:
+                changes.append(f"중복 링크 제거: [[{link}]] (#{seen_links[link]})")
                 return alias[1:] if alias else link
 
-        # 중복 링크 처리 (처음 1회만 유지)
-        seen_links[link] = seen_links.get(link, 0) + 1
-        if seen_links[link] > 1:
-            changes.append(f"중복 링크 제거: [[{link}]] (#{seen_links[link]})")
-            return alias[1:] if alias else link
+            return m.group(0)  # 변경 없음
+        return replace_link
 
-        return m.group(0)  # 변경 없음
-
-    new_content = WIKILINK_RE.sub(replace_link, content)
+    new_segments = []
+    for seg in segments:
+        seen_links: dict[str, int] = {}
+        new_segments.append(WIKILINK_RE.sub(make_replacer(seen_links), seg))
+    new_content = "".join(new_segments)
     return new_content, changes
 
 

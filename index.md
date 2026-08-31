@@ -14,6 +14,7 @@ title: Sangrok B2
 ---
 
 ## 🚀 Projects
+- [[Projects/AIPT/AIPT|AIPT]]
 - ai-imps — AI 알고리즘 구현/연구
 - fin_calculator — React 금융 계산기
 - remote_work/stat_graph_vis — 통계 그래프 시각화
@@ -21,6 +22,7 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Dev/TCP 프로토콜 연구|TCP 프로토콜 연구]]
 - [[Knowledge/Dev/B2 Wiki 자동화 시스템|B2 Wiki 자동화 시스템]]
 - 개발 지식
 - 아이디어

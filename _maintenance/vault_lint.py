@@ -179,12 +179,33 @@ def main():
             oversized.append({"file": slug(f), "lines": lines})
 
     # 중복 wikilink
+    # Daily Note/Topic Doc처럼 entry 블록(conversation-to-obsidian/topic-doc
+    # start~end)이 여러 개 있는 파일은 "같은 문서를 가리키는 Related 링크가
+    # 엔트리마다 반복되는 것"이 의도된 정상 패턴이므로, 파일 전체가 아니라
+    # entry 블록 단위로 중복을 판정한다. 엔트리 마커가 없는 일반 파일은
+    # 기존처럼 파일 전체 기준으로 판정.
+    entry_boundary_re = re.compile(
+        r"(?=<!-- (?:conversation-to-obsidian|topic-doc):start:)"
+    )
     duplicate_links = []
     for s, links in all_wikilinks_per_file.items():
-        counts = defaultdict(int)
-        for lnk in links:
-            counts[lnk] += 1
-        dups = {lnk: cnt for lnk, cnt in counts.items() if cnt > 1}
+        f = file_slugs[s]
+        content = f.read_text(encoding="utf-8")
+        if entry_boundary_re.search(content):
+            dups: dict[str, int] = {}
+            for seg in entry_boundary_re.split(content):
+                seg_links = extract_wikilinks(seg)
+                counts = defaultdict(int)
+                for lnk in seg_links:
+                    counts[lnk] += 1
+                for lnk, cnt in counts.items():
+                    if cnt > 1:
+                        dups[lnk] = max(dups.get(lnk, 0), cnt)
+        else:
+            counts = defaultdict(int)
+            for lnk in links:
+                counts[lnk] += 1
+            dups = {lnk: cnt for lnk, cnt in counts.items() if cnt > 1}
         if dups:
             duplicate_links.append({"file": s, "duplicates": dups})
 
