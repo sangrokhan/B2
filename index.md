@@ -21,6 +21,7 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Dev/B2 Wiki 자동화 시스템|B2 Wiki 자동화 시스템]]
 - 개발 지식
 - 아이디어
 - 비즈니스

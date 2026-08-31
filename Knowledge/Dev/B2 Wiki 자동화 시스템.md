@@ -1,0 +1,36 @@
+---
+type: topic-doc
+title: B2 Wiki 자동화 시스템
+tags: [B2, cron, obsidian, topic-doc, topic, doc, 분할, 주제, 챕터, 실행, d5e, 누적]
+created: 2026-08-31
+updated: 2026-08-31
+split: false
+---
+
+# B2 Wiki 자동화 시스템
+
+## Log
+
+### 10:42 Topic Doc(누적 주제 문서) 시스템 설계 및 구현
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_104259_00217d5e -->
+<!-- chapter: 설계 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_104259_00217d5e
+
+#### Summary
+- 기존 cron(b2-wiki-maintenance)이 대화를 날짜별 Daily Note로만 요약하고, 같은 목적/프로젝트의 대화가 하나의 문서로 누적되지 않는 문제를 지적
+- 목표: 같은 주제 대화를 하나의 누적 문서(Topic Doc)로 계속 쌓고, 문서가 커지면 챕터 단위 서브페이지로 자동 분할해 목차(TOC)로 탐색 가능하게 함
+- 설계 결정: 주제/챕터 매칭은 고정 목록 없이 매 실행 LLM이 기존 Knowledge/Projects 폴더를 스캔해 동적으로 판단
+- 저장 위치는 새 최상위 폴더 대신 기존 Knowledge/{Dev,Ideas,Business}/, Projects/<name>/ 구조를 그대로 사용
+- 분할 기준: 챕터(논리 단계) 우선 분할 + 챕터 자체가 커지면 줄수 기준 추가 분할(파트 롤오버)
+- Daily Note는 유지하고 Topic Doc과 상호 wikilink로 연결
+
+#### Decisions
+- 신규 스크립트 topic_doc.py(upsert/split/status) 작성 및 /tmp/testvault에서 생성→멱등성→분할→롤오버까지 실제 실행 검증 완료
+- conversation-to-obsidian 스킬에 Workflow D(Topic Doc) 추가, b2-wiki-maintenance 스킬 파이프라인을 8→10단계로 갱신
+- cron job(9d85ae79a8f7) 프롬프트에 PHASE 2.5(Topic Doc 누적), PHASE 2.6(분할 점검) 단계 삽입 및 즉시 1회 실행 트리거
+
+#### TODO
+- [ ] 실제 운영 데이터로 Topic Doc이 올바른 주제/챕터에 매칭되는지 몇 차례 실행 후 점검
+- [ ] 문서 분할이 실제로 발생했을 때 TOC/서브페이지 링크가 Obsidian/Quartz에서 정상 렌더링되는지 확인
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_104259_00217d5e -->
