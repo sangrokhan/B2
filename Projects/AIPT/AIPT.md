@@ -1,7 +1,7 @@
 ---
 type: topic-doc
 title: AIPT 프로젝트
-tags: [AIPT, TCP, Vegas, aipt, architecture, bugfix, c0acdpuakn3, congestion, dev, docker, incident, local-llm, record, refactor, review, slack, sse, tcp, testing, todo, topic-doc, ui, web, 커밋]
+tags: [AIPT, QUIC, TCP, Vegas, aipt, architecture, bugfix, c0acdpuakn3, capture, components, congestion, cwnd, dev, diagram, docker, docs, incident, local-llm, pcap, quic_mock, record, refactor, review, sequence-diagram, slack, sse, tcp, testing, todo, topic-doc, ui, web, 커밋, mock]
 created: 2026-08-31
 updated: 2026-08-31
 split: false
@@ -230,3 +230,107 @@ split: false
 #### TODO
 - [ ] MIGRATION.md에 이번 record_id 수정 작업 기록 여부 결정 필요 (대화 종료 시점에 미확정)
 <!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_112032_e9006621 -->
+
+### 13:49 AIPT QUIC 패킷 캡쳐 이상 확인
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_134943_49ec64f4 -->
+<!-- chapter: 이슈해결 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_134943_49ec64f4
+
+#### Summary
+- AIPT에서 QUIC 선택 시 패킷 캡처가 비정상적으로 작다는 사용자 지적으로 조사 시작 — QUIC이 UDP로 캡처되는 것 자체는 정상(QUIC은 UDP 기반)이나, Wireshark가 QUIC으로 식별하지 못하고 튼 문제가 있는지 확인
+- 근본 원인 발견: tcpdump 캡처 윈도우가 connect() 완료 후에 열려서 QUIC의 Initial/Handshake 패킷이 캡처에서 누락됨 — Wireshark가 QUIC 식별 근거로 삼는 초기 핸드셰이크가 없어 나머지를 그냥 암호화된 UDP로 표시했음. 같은 순서 버그가 TCP 등 다른 backend에도 있었으나 SYN/ACK 누락은 덜 눈에 띄었을 뿐
+- cwnd.csv/cwnd_summary.csv가 QUIC 실행에서 헤더만 있고 데이터 0행인 문제도 함께 발견 — aioquic이 유저스페이스에서 혼잡제어를 관리해 커널 netlink 모니터가 붙을 소켓이 없었던 것이 원인
+- 수정: capture를 connect() 이전(resolve_target 직후)으로 이동, QUIC(http3)일 때 tcpdump 필터를 udp로 전환. aioquic의 congestion 객체를 20ms 주기로 폴링하는 백그라운드 코루틴(_cwnd_sample_loop) 추가해 연속 cwnd 샘플 확보
+- 실컨테이너 재빌드/재기동 후 실제 /api/run 호출로 검증: cwnd.csv 156줄(헤더+155샘플, cwnd 12491→673923 성장), pcap에 Initial/Handshake 포함 확인, bundle.zip에 pcap/csv 정상 포함
+- 디버깅 중 쌓인 테스트 실행 이력 43개를 API로 전량 삭제(메모리+디스크) 완료
+
+#### Decisions
+- tcpdump capture 시작 시점을 connect() 완료 후 → resolve_target() 직후(핸드셰이크 전)로 변경 확정
+- QUIC(transport=http3) 캡처 필터는 udp로, 그 외는 기존 tcp 유지
+- QuicMockBackend cwnd 샘플링은 커널 netlink 대신 aioquic 자체 congestion 객체를 20ms 주기로 폴링하는 방식 채택
+- 디버깅용 테스트 run 이력은 정리 후 유지하지 않기로 함(전량 삭제)
+
+#### TODO
+- [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음, 커밋 c8bab7c3 및 캡처 순서 수정 모두 push 완료)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_134943_49ec64f4 -->
+
+### 16:12 AIPT 아키텍처 다이어그램 기능 단위 재구성
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_161233_858c4d57 -->
+<!-- chapter: 문서화 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_161233_858c4d57
+
+#### Summary
+- ARCHITECTURE.md의 아키텍처 다이어그램(mermaid)을 "구현 세부사항 단위"에서 "기능 단위"로 재구성해달라는 요청
+- BACKENDS→TARGETS/GATEWAY 화살표 레이블에서 "TCP 미검사", "커널 IP 포워딩" 등 구현 세부 표현을 제거하고 "public_ai — 인터넷 직행", "mock/local_llm — L3 forward"처럼 기능적 설명으로 단순화
+- 총 92개 메시지에 걸쳐 다이어그램 여러 곳을 반복 검토·수정 (세션 내 다수의 patch 적용)
+
+#### Decisions
+- ARCHITECTURE.md 다이어그램은 구현 디테일(TCP/커널 포워딩 등) 대신 기능/역할 중심 레이블로 통일하기로 결정
+
+#### TODO
+- [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_161233_858c4d57 -->
+
+### 16:53 AIPT 패키지 구조 최신화 확인
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_165335_cc58cc9d -->
+<!-- chapter: 문서화 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_165335_cc58cc9d
+
+#### Summary
+- AIPT 패키지 구조(ARCHITECTURE.md §1.2)가 실제 코드와 어긋난 부분(신규 quic_mock/ 백엔드, congestion.py/quic_congestion.py, 추가 Docker 파일 등) 최신화 요청
+- 패키지 트리에 aipt/backends/quic_mock/(backend.py, server.py, congestion.py, experiment.py, spike_runner.py — QUIC idle-probe 혼잡제어 스파이크, Backend 프로토콜 미구현) 신규 반영
+- aipt/core/에 congestion.py(TCP 커널 가용 혼잡제어 알고리즘 /proc 조회), quic_congestion.py(QUIC 유저스페이스 혼잡제어 조회) 항목 추가
+- docker/ 디렉토리에 Dockerfile.local_llm, Dockerfile.quic_mock_server, entrypoint_local_llm.py, entrypoint_quic_mock_server.py 등 신규 파일 반영
+- 테스트 스위트 구성을 core(8)/backends(19+1)/export(4)/web(4)/gateway(4) 총 519 tests로 갱신 표기
+- mock/ 백엔드 내부 파일명 오기(fixtures.py→records.py) 등 세부 정정
+
+#### Decisions
+- ARCHITECTURE.md §1.2 패키지 구조 트리를 실제 파일시스템과 완전히 동기화하기로 결정(quic_mock, congestion/quic_congestion, 신규 docker 파일 전부 반영)
+
+#### TODO
+- [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_165335_cc58cc9d -->
+
+### 17:50 AIPT 주요 컴포넌트 역할 정리
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_175051_6de76d47 -->
+<!-- chapter: 문서화 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_175051_6de76d47
+
+#### Summary
+- ARCHITECTURE.md §2 "주요 컴포넌트 설계"를 구현 세부사항 나열식에서 "역할/주요 기능" 중심 서술로 재작성 요청
+- 5개 컴포넌트(①PublicAIBackend ②MockBackend ③LocalLLMBackend ④Network Gateway ⑤프론트엔드 aipt/web) 각각에 대해 "역할" 한 줄 요약 + "주요 기능" 불릿 목록 형식으로 통일
+- LocalLLMBackend의 "engine gateway"(애플리케이션 레벨 프록시)와 ④ Network Gateway(L3 커널 레벨)가 이름은 비슷하지만 다른 컴포넌트임을 경고 박스로 명시
+- 코드 레벨 세부사항(파일명, 함수명 등)은 줄이고 "무엇을 하는 컴포넌트인지"에 집중하도록 전면 재작성
+
+#### Decisions
+- ARCHITECTURE.md §2 컴포넌트 설명 형식을 "역할 한 줄 + 주요 기능 불릿"으로 표준화
+- engine gateway(LocalLLMBackend 내부)와 Network Gateway(별도 L3 컴포넌트)의 이름 혼동 방지용 경고 문구 유지
+
+#### TODO
+- [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_175051_6de76d47 -->
+
+### 17:55 AIPT 백엔드별 데이터 흐름도 작성
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260831_175534_34292495 -->
+<!-- chapter: 문서화 -->
+<!-- date: 2026-08-31 -->
+- Source: session 20260831_175534_34292495
+
+#### Summary
+- ARCHITECTURE.md §3.2 "Backend별 통신 Sequence Diagram"을 mermaid 시퀀스 다이어그램에서 "모듈 → 화살표" 텍스트 흐름도로 전환, 각 백엔드(public_ai/mock/local_llm)별로 어떤 모듈이 무엇을 하고(괄호로 내부 동작 표기) 그 시점에 어떤 로그/추출 데이터가 남는지(［로그/추출］ 태그) 명시하도록 재작성
+- PublicAIBackend: 실제 Gemini/OpenAI API 직행, API 서버가 자체 추론 수행, public_ai_records JSON으로 자동 영속 저장되는 유일한 backend
+- MockBackend: Network Gateway L3 IP 포워딩 경유, mock-server가 inference_delay_ms만큼 대기(실측 아닌 설정값)하며 응답 생성, 비영속(bundle.zip으로만 보존)
+- LocalLLMBackend: engine gateway(애플리케이션 레벨) + Network Gateway(L3) 이중 경유, 서빙 엔진이 실제 추론 수행
+- 세 backend의 "로그/추출 관점" 비교표 추가(내부 동작 지점/지연 표현 방식/영속 저장 여부)
+- 실제 코드(backends/record.py, mock/conversation.py, local_llm/__init__.py, DESIGN.md §4.7.1) 근거로 실제 필드명(wire_sent, ttft_ms, inference_delay_ms 등) 반영
+
+#### Decisions
+- §3.2 Sequence Diagram을 mermaid에서 텍스트 기반 모듈→화살표 흐름도로 전환, 로그/추출 데이터 관점을 태그로 명시하는 형식 확정
+
+#### TODO
+- [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_175534_34292495 -->
