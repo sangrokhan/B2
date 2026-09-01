@@ -48,13 +48,32 @@ def slug(path: Path) -> str:
 
 
 def resolve_wikilink(link: str, source_path: Path) -> Path | None:
-    """wikilink → 실제 파일 경로 (Obsidian shortest-path 방식)"""
+    """wikilink → 실제 파일 경로 (Obsidian shortest-path 방식)
+
+    Obsidian은 "/"가 포함된 링크도 vault 루트 기준 절대경로 하나만 보는 게
+    아니라, 경로 suffix가 유일하게 일치하는 파일을 찾는 shortest-unique-path
+    매칭을 쓴다 (예: "AIPT/구현"은 실제로 "Projects/AIPT/AIPT/구현.md"처럼
+    더 깊은 폴더에 있어도 매칭됨). 그래서 절대경로 매칭이 실패하면 suffix
+    매칭으로 한 번 더 시도한다.
+    """
     link = link.strip()
-    # 절대 경로 형식
+    # 1) 절대 경로(vault 루트 기준) 형식
     if "/" in link:
         candidate = VAULT / (link + ".md")
         if candidate.exists():
             return candidate
+        # 2) suffix 매칭: 경로 끝부분이 링크와 일치하는 파일을 vault 전체에서 탐색
+        link_parts = tuple(link.split("/"))
+        matches = []
+        for p in VAULT.rglob("*.md"):
+            parts = p.relative_to(VAULT).parts
+            if set(parts) & IGNORE_DIRS:
+                continue
+            stem_parts = parts[:-1] + (p.stem,)
+            if len(stem_parts) >= len(link_parts) and stem_parts[-len(link_parts):] == link_parts:
+                matches.append(p)
+        if len(matches) == 1:
+            return matches[0]
         return None
     # 최단 경로: vault 전체에서 stem 매칭
     for p in VAULT.rglob(f"{link}.md"):

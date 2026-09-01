@@ -39,6 +39,30 @@ def suggest_fix(link: str, stems: dict[str, Path]) -> str | None:
     return None
 
 
+def link_resolves(link: str) -> bool:
+    """Obsidian shortest-unique-path 방식으로 링크가 실제로 해석되는지 확인.
+
+    stems 딕셔너리는 stem과 full slug만 담고 있어 "AIPT/구현" 같은 중간
+    경로(폴더+stem, full slug보다 짧은) 링크를 놓친다. 그 결과 실제로는
+    유효한 링크를 "깨짐"으로 오판해 difflib 유사도 매칭이 엉뚱한 후보
+    (예: 부모 문서 "AIPT")로 잘못 고쳐버리는 사고가 있었다 (2026-09-01).
+    링크에 "/"가 있으면 경로 suffix가 유일하게 일치하는 파일이 있는지
+    먼저 확인하고, 있으면 존재하는 것으로 취급한다.
+    """
+    if "/" not in link:
+        return False
+    link_parts = tuple(link.split("/"))
+    matches = []
+    for p in VAULT.rglob("*.md"):
+        parts = p.relative_to(VAULT).parts
+        if set(parts) & IGNORE_DIRS:
+            continue
+        stem_parts = parts[:-1] + (p.stem,)
+        if len(stem_parts) >= len(link_parts) and stem_parts[-len(link_parts):] == link_parts:
+            matches.append(p)
+    return len(matches) == 1
+
+
 def fix_links_in_file(path: Path, stems: dict[str, Path]) -> tuple[str, list[str]]:
     """파일 내 링크 수정. (새 content, 변경 로그) 반환.
 
@@ -71,8 +95,12 @@ def fix_links_in_file(path: Path, stems: dict[str, Path]) -> tuple[str, list[str
                 changes.append(f"자기참조 제거: [[{link}]]")
                 return alias[1:] if alias else link  # alias만 텍스트로 남김
 
-            # 링크 존재 확인
-            exists = link in stems or (link + ".md") in [str(p.relative_to(VAULT)) for p in stems.values()]
+            # 링크 존재 확인 (stem/slug 직접 매칭 실패 시 shortest-unique-path suffix 매칭도 시도)
+            exists = (
+                link in stems
+                or (link + ".md") in [str(p.relative_to(VAULT)) for p in stems.values()]
+                or link_resolves(link)
+            )
             if not exists:
                 fix = suggest_fix(link, stems)
                 if fix:
