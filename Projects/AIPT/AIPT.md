@@ -1,9 +1,9 @@
 ---
 type: topic-doc
 title: AIPT 프로젝트
-tags: [AIPT, QUIC, TCP, Vegas, aipt, architecture, bugfix, c0acdpuakn3, capture, components, congestion, cwnd, dev, diagram, docker, docs, incident, local-llm, pcap, quic_mock, record, refactor, review, sequence-diagram, slack, sse, tcp, testing, todo, topic-doc, ui, web, 커밋, mock]
+tags: [AIPT, QUIC, TCP, Vegas, aipt, architecture, bugfix, c0acdpuakn3, capture, components, congestion, cwnd, dev, diagram, docker, docs, gateway, idle-reset, incident, local-llm, mock, netem, ooo, pcap, quic_mock, record, refactor, review, sequence-diagram, slack, sse, tcp, testing, todo, topic-doc, ui, web, 문서화, 커밋]
 created: 2026-08-31
-updated: 2026-08-31
+updated: 2026-09-01
 split: false
 ---
 
@@ -334,3 +334,52 @@ split: false
 #### TODO
 - [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음)
 <!-- topic-doc:end:slack:C0ACDPUAKN3:20260831_175534_34292495 -->
+
+### 10:16 AIPT idle-reset TCP 실험 + ooo 적용
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260901_101644_453bd6dd -->
+<!-- chapter: 이슈해결 -->
+<!-- date: 2026-09-01 -->
+- Source: session 20260901_101644_453bd6dd
+
+#### Summary
+- Sangrok 요청으로 AIPT 프로젝트에 ooo(Ouroboros) 방식 적용 후 idle-reset(idle 후 slow-start-after-idle) TCP 실험 진행
+- mock 백엔드에서 4초 idle × 6턴 × 3반복 A/B 실험: idle_reset=1(기본) post-idle TTFT 평균 4508.3ms vs idle_reset=0 4346.7ms, 차이 +161.5ms(+3.7%)로 재현 가능
+- cwnd 시계열 검증 중 결함 발견: 클라이언트(web) 컨테이너에서 관찰한 cwnd는 응답을 실제 전송하는 mock-server 쪽이 아니라서 무관한 값이었음 — 서버 측(mock-server) cwnd를 봐야 함
+- mock-server 내부 ss -ti 1초 폴링으로 일부 idle_reset=1 리셋 징후(t=20,24,28에 cwnd 10) 확인했으나 폴링 간격이 너무 성겨 확정적 증거 부족
+- local_llm 백엔드의 실제 패킷 경로를 tcpdump L2 MAC 분석으로 실측 검증 — web→gateway→local-llm 경로가 Network Gateway를 반드시 경유함을 확인 (SYN 목적지 MAC이 Gateway MAC과 일치, SYN-ACK RTT 60ms가 20ms×2 netem과 부합)
+- 부수 발견: GATEWAY_CLIENT_IFACE/GATEWAY_BACKEND_IFACE 환경변수 이름과 실제 서브넷 매핑이 뒤바뀌어 있음(기능상 문제는 없음, apply_profile_both가 양쪽에 동일 적용하기 때문) — 정리 여부는 보류
+- Sangrok 승인 하에 mock-server 측 cwnd를 aipt.core.cwnd.Monitor로 정밀(2ms 주기) 재관찰하는 다음 실험 진행 중
+
+#### Decisions
+- TTFT 차이(161ms, +3.7%)는 인정하되 "idle-reset이 원인"이라는 인과관계는 아직 미확정 — 확정적 주장 보류하고 정직하게 보고
+- 클라이언트 측이 아닌 서버(mock-server) 측 cwnd를 aipt.core.cwnd.Monitor로 정밀 관찰해 메커니즘 재검증하기로 함
+- GATEWAY_CLIENT_IFACE/BACKEND_IFACE 이름 정정은 기능 영향 없으므로 즉시 처리하지 않고 보류
+
+#### TODO
+- [ ] mock-server 측 cwnd를 aipt.core.cwnd.Monitor(2ms 주기)로 정밀 재관찰해 idle-reset 인과관계 확정
+- [ ] (선택) GATEWAY_CLIENT_IFACE/GATEWAY_BACKEND_IFACE 변수명을 실제 서브넷에 맞게 정리
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260901_101644_453bd6dd -->
+
+### 10:56 AIPT ARCHITECTURE.md §4.2 gateway/profile 문서화
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260901_105628_c3c3fe74 -->
+<!-- chapter: 문서화 -->
+<!-- date: 2026-09-01 -->
+- Source: session 20260901_105628_c3c3fe74
+
+#### Summary
+- Sangrok 요청: ARCHITECTURE.md §4.2 내부 API를 gateway/profile 설정 가능 값 위주로 업데이트, 혼잡제어 알고리즘 변경은 Gateway가 아닌 web 서버 관심사로 재작성
+- POST /gateway/profile Body 스펙을 필드 테이블로 명확화: profile(필수, clean/broadband/3g/satellite/lossy/custom 6개), delay_ms/jitter_ms/loss_pct/reorder_pct는 custom일 때만 적용됨을 코드(profiles.py resolve()) 근거로 명시
+- TCP 혼잡제어 알고리즘 절을 "Gateway API에는 관련 필드가 없다"로 못박고 aipt/web(웹 서버) 쪽 관심사로 재작성, POST /api/run의 algorithm 필드 → wire.set_congestion_algorithm() 경로를 코드로 재확인해 4.3절과 상호 참조 추가
+- Sangrok 추가 질문: "profile 값들이 netem 자체 제공값인지 임의로 만든 것인지" — clean/broadband/3g/satellite/lossy는 프로젝트가 임의로 정의한 프리셋 이름(DESIGN.md 4.7 드롭다운)이며 netem 자체가 제공하는 표준 명칭이 아님을 확인, "3g"/"satellite" 같은 다소 오해 소지 있는 이름을 clean/wired/wireless/custom 체계로 정리
+- docker-compose.yml의 GATEWAY_PROFILE 관련 주석("clean"/"3g" 언급)도 최신 프리셋 이름에 맞게 수정, MIGRATION.md/감사문서는 시점 기록이므로 과거 이름 그대로 보존
+- gateway/web 테스트 111개 전부 통과 확인
+
+#### Decisions
+- ARCHITECTURE.md §4.2를 실제 코드 기준(profiles.py, app.py)으로 재작성 — profile 프리셋 6종 + custom 필드 규칙 명확화
+- 혼잡제어 알고리즘은 Gateway가 아닌 aipt/web(POST /api/run)의 관심사임을 문서에 명확히 반영
+- netem profile 프리셋 이름(clean/broadband/3g/satellite/lossy)은 netem 표준이 아니라 프로젝트 자체 정의 — 오해 소지 있는 "3g"/"satellite" 등을 clean/wired/wireless/custom 체계로 정리
+- 시점 기록 문서(MIGRATION.md, seed 감사문서)는 과거 이름 그대로 보존, 실사용 문서/설정(ARCHITECTURE/DESIGN/README/docker-compose)만 갱신
+
+#### TODO
+- [ ] (해당 세션에서 완료 처리 — 별도 후속 TODO 없음)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260901_105628_c3c3fe74 -->
