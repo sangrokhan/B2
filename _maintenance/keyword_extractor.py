@@ -113,9 +113,10 @@ def add_tags_to_frontmatter(content: str, new_tags: list[str]) -> tuple[str, boo
     # frontmatter에 tags 없음 → 추가
     fm_match = FRONTMATTER_RE.match(content)
     if fm_match:
-        end = fm_match.end()
-        new_fm = content[:end - 4] + f"\n{tags_line}\n---\n"
-        new_content = new_fm + content[end:]
+        fm_body = fm_match.group(1)
+        rest = content[fm_match.end():]
+        new_fm = f"---\n{fm_body}\n{tags_line}\n---\n"
+        new_content = new_fm + rest
         return new_content, True
 
     # frontmatter 자체 없음 → 맨 앞에 삽입
