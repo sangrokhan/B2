@@ -14,6 +14,12 @@ title: Sangrok B2
 ---
 
 ## 🚀 Projects
+- [[Projects/AIPT/AIPT/구현|구현]]
+- [[Projects/AIPT/AIPT/설계|설계]]
+- [[Projects/AIPT/AIPT/테스트환경|테스트환경]]
+- [[Projects/AIPT/AIPT/이슈해결|이슈해결]]
+- [[Projects/AIPT/AIPT/문서화|문서화]]
+- [[Projects/AIPT/AIPT/검토|검토]]
 - [[Projects/AIPT/AIPT|AIPT]]
 - ai-imps — AI 알고리즘 구현/연구
 - fin_calculator — React 금융 계산기
