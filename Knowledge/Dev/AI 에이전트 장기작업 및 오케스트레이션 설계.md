@@ -1,9 +1,9 @@
 ---
 type: topic-doc
 title: AI 에이전트 장기작업 및 오케스트레이션 설계
-tags: [AI-에이전트, 루프-엔지니어링, Ralph-Loop, 서브에이전트, 오케스트레이션, Claude-Code, 강제, claude, hermes, 확인, 분리, c3975a6b, code, permissions]
+tags: [AI-에이전트, Claude-Code, Ralph-Loop, a2a, agent-protocol, c3975a6b, claude, code, hermes, multi-agent, orchestration, permissions, 강제, 루프-엔지니어링, 분리, 서브에이전트, 오케스트레이션, 확인, 호출, 에이전트, 가능한]
 created: 2026-09-02
-updated: 2026-09-02
+updated: 2026-09-03
 split: false
 ---
 
@@ -34,3 +34,23 @@ split: false
 - [ ] Hermes 시스템(config.yaml 등)에 orchestrator의 write_file/patch 사용을 막는 하드락 옵션 존재 여부 확인
 - [ ] dev-task-guidelines 스킬 5개 항목을 '제약조건화 가능/불가능'으로 분류하고 가능한 항목은 실제 설정 파일로 전환 (사용자 승인 대기)
 <!-- topic-doc:end:slack:C0ACDPUAKN3:20260902_160736_c3975a6b -->
+
+### 19:31 A2A 호출 가능한 코딩 Agent 존재 여부
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260902_193105_cfe13c44 -->
+<!-- chapter: 멀티 에이전트 상호운용 프로토콜 -->
+<!-- date: 2026-09-03 -->
+- Source: session 20260902_193105_cfe13c44
+
+#### Summary
+- A2A(Agent2Agent) 프로토콜로 호출 가능한 코딩 에이전트 존재 여부 질문
+- claude-a2a, codex-a2a, opencode-a2a, swival, a2a-bridge 등 커뮤니티 wrapper 구현체 다수 확인 (1st-party 공식 지원은 없음)
+- 로컬/동일 머신에서는 headless CLI 호출(claude -p, codex exec)이 A2A보다 가볍고 직접적임을 설명
+- A2A는 shell 접근 권한 없는 외부 프로세스/조직 경계·다중 벤더 표준화가 필요한 경우에만 의미 있음
+- 현재 Hermes 환경 기준 delegate_task/headless CLI가 A2A보다 우선순위 높다는 잠정 결론, 구체적 유스케이스는 미확정
+
+#### Decisions
+- 로컬 shell 접근 가능한 현재 환경에서는 A2A 래퍼 도입보다 delegate_task/headless CLI 호출 방식을 잠정 우선 (최종 결정 아님)
+
+#### TODO
+- [ ] A2A 연동 검토 중인 구체적 유스케이스(외부에서 Hermes 호출 vs Hermes가 외부 A2A 에이전트 호출) 확인 필요
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260902_193105_cfe13c44 -->

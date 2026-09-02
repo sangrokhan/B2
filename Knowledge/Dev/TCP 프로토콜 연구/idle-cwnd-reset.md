@@ -3,8 +3,8 @@ type: topic-doc-chapter
 parent: Knowledge/Dev/TCP 프로토콜 연구.md
 chapter: idle-cwnd-reset
 part: 1
+tags: [rtt, tcp, cwnd, idle, probe, baseline, rttvar, 분석]
 ---
-
 # TCP 프로토콜 연구 — idle-cwnd-reset
 
 ## Log

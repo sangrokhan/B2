@@ -3,8 +3,8 @@ type: topic-doc-chapter
 parent: Knowledge/Dev/TCP 프로토콜 연구.md
 chapter: RTO계산
 part: 1
+tags: [rto, tcp, srtt, rttvar, d7a31b11, rtt, rfc, 계산]
 ---
-
 # TCP 프로토콜 연구 — RTO계산
 
 ## Log

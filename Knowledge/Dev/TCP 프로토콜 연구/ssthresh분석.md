@@ -3,8 +3,8 @@ type: topic-doc-chapter
 parent: Knowledge/Dev/TCP 프로토콜 연구.md
 chapter: ssthresh분석
 part: 1
+tags: [ssthresh, tcp, hystart, rto, 분석, f42b60c9, enter, spurious]
 ---
-
 # TCP 프로토콜 연구 — ssthresh분석
 
 ## Log

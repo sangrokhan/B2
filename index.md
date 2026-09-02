@@ -28,6 +28,13 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Dev/TCP 프로토콜 연구/idle-cwnd-reset|idle-cwnd-reset]]
+- [[Knowledge/Dev/TCP 프로토콜 연구/연구방향확장|연구방향확장]]
+- [[Knowledge/Dev/TCP 프로토콜 연구/혼잡제어알고리즘비교|혼잡제어알고리즘비교]]
+- [[Knowledge/Dev/TCP 프로토콜 연구/연구방향-벤더전략|연구방향-벤더전략]]
+- [[Knowledge/Dev/TCP 프로토콜 연구/rto계산|rto계산]]
+- [[Knowledge/Dev/TCP 프로토콜 연구/ssthresh분석|ssthresh분석]]
+- [[Knowledge/Dev/삼성-갤럭시-AI-온디바이스-클라우드-리서치|삼성-갤럭시-AI-온디바이스-클라우드-리서치]]
 - [[Knowledge/Business/공공데이터-창업-아이디어-리서치|공공데이터-창업-아이디어-리서치]]
 - [[Knowledge/Dev/AI 에이전트 장기작업 및 오케스트레이션 설계|AI 에이전트 장기작업 및 오케스트레이션 설계]]
 - [[Knowledge/Dev/TCP 프로토콜 연구|TCP 프로토콜 연구]]
