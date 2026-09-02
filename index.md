@@ -28,6 +28,8 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Business/공공데이터-창업-아이디어-리서치|공공데이터-창업-아이디어-리서치]]
+- [[Knowledge/Dev/AI 에이전트 장기작업 및 오케스트레이션 설계|AI 에이전트 장기작업 및 오케스트레이션 설계]]
 - [[Knowledge/Dev/TCP 프로토콜 연구|TCP 프로토콜 연구]]
 - [[Knowledge/Dev/B2 Wiki 자동화 시스템|B2 Wiki 자동화 시스템]]
 - 개발 지식
