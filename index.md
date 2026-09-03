@@ -14,6 +14,7 @@ title: Sangrok B2
 ---
 
 ## 🚀 Projects
+- [[Projects/quant-agent/quant-agent|quant-agent]]
 - [[Projects/AIPT/AIPT/구현|구현]]
 - [[Projects/AIPT/AIPT/설계|설계]]
 - [[Projects/AIPT/AIPT/테스트환경|테스트환경]]
@@ -28,6 +29,7 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Business/GEO-AEO-콘텐츠비즈니스-수익모델|GEO-AEO-콘텐츠비즈니스-수익모델]]
 - [[Knowledge/Dev/삼성-갤럭시-AI-온디바이스-클라우드-비교표|삼성-갤럭시-AI-온디바이스-클라우드-비교표]]
 - [[Knowledge/Dev/TCP 프로토콜 연구/idle-cwnd-reset|idle-cwnd-reset]]
 - [[Knowledge/Dev/TCP 프로토콜 연구/연구방향확장|연구방향확장]]

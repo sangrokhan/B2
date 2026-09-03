@@ -2,7 +2,7 @@
 date: 2026-09-03
 type: knowledge
 category: business
-tags: [GEO, AEO, SEO, 콘텐츠비즈니스, AI검색]
+tags: [GEO, AEO, SEO, 콘텐츠비즈니스, AI검색, 콘텐츠, 클릭, 직접, geo, seo, 용어, aeo, optimization]
 status: active
 ---
 
