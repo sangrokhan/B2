@@ -29,6 +29,7 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Dev/Hermes 에이전트 인프라 유지보수|Hermes 에이전트 인프라 유지보수]]
 - [[Knowledge/Business/GEO-AEO-콘텐츠비즈니스-수익모델|GEO-AEO-콘텐츠비즈니스-수익모델]]
 - [[Knowledge/Dev/삼성-갤럭시-AI-온디바이스-클라우드-비교표|삼성-갤럭시-AI-온디바이스-클라우드-비교표]]
 - [[Knowledge/Dev/TCP 프로토콜 연구/idle-cwnd-reset|idle-cwnd-reset]]
