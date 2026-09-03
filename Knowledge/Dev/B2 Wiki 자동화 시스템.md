@@ -1,9 +1,9 @@
 ---
 type: topic-doc
 title: B2 Wiki 자동화 시스템
-tags: [B2, b2, bugfix, cron, d5e, doc, frontmatter, github-actions, keyword_extractor, maintenance, obsidian, topic, topic-doc, 누적, 분할, 실행, 주제, 챕터, keyword, extractor, github]
+tags: [B2, automation, b2, browser, bugfix, chrome, cron, d5e, doc, extractor, frontmatter, github, github-actions, hermes, keyword, keyword_extractor, maintenance, obsidian, systemd, topic, topic-doc, 누적, 분할, 실행, 주제, 챕터, slack, c0acdpuakn3]
 created: 2026-08-31
-updated: 2026-09-02
+updated: 2026-09-03
 split: false
 ---
 
@@ -57,3 +57,25 @@ split: false
 #### TODO
 - [ ] 없음 (해당 세션에서 원인 파악·수정·검증까지 완료)
 <!-- topic-doc:end:slack:C0ACDPUAKN3:20260901_181154_ecf0aa33 -->
+
+### 16:19 크롬 디버깅 모드 자동 활성화 문제 해결
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260902_161932_3feaf75b -->
+<!-- chapter: 이슈해결 -->
+<!-- date: 2026-09-03 -->
+- Source: session 20260902_161932_3feaf75b
+
+#### Summary
+- 원격 데스크톱으로 Chrome 화면이 깨져서 브라우저 자동화(debugging 모드) "Allow" 팝업을 직접 눌러줄 수 없는 문제 해결 요청
+- 조사 결과 기존 Chrome(포트 9222, 개인 프로필)에 원격 디버깅 팝업이 뜨는 구조적 문제 확인, Chrome Remote Desktop(CRD)의 더미 비디오 드라이버가 화면 깨짐의 원인으로 추정
+- 해결책으로 전용 자동화 Chrome을 systemd 사용자 서비스(hermes-automation-chrome, port 9223, 전용 프로필 ~/.hermes/chrome-debug, headed)로 신규 등록
+- ~/.hermes/.env에 BU_CDP_URL=http://127.0.0.1:9223 추가해 browser-use 데몬이 전용 Chrome에 자동 연결되도록 설정
+- curl 및 browser-use page_info() 실측으로 팝업 없이 정상 연결 확인, 이후 게이트웨이가 예기치 않게 재시작되어 세션 자동 복구됨
+- 화면 깨짐(AV1 코덱) 자체는 서버측이 아닌 원격제어 클라이언트(주인님 PC) 쪽 chrome://flags 설정으로 별도 해결 필요하다고 안내
+
+#### Decisions
+- 브라우저 자동화 전용으로 hermes-automation-chrome systemd 서비스(port 9223) 신설, 개인 Chrome(9222)과 완전히 분리
+- BU_CDP_URL 환경변수로 browser-use가 전용 Chrome을 사용하도록 고정
+
+#### TODO
+- [ ] 원격제어 클라이언트(주인님 PC) Chrome에서 chrome://flags/#enable-webrtc-av1-encoder를 Disabled로 변경해 화면 깨짐 해결 (주인님이 직접 조치 필요)
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260902_161932_3feaf75b -->

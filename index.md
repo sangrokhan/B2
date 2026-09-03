@@ -28,6 +28,7 @@ title: Sangrok B2
 ---
 
 ## 🧠 Knowledge
+- [[Knowledge/Dev/삼성-갤럭시-AI-온디바이스-클라우드-비교표|삼성-갤럭시-AI-온디바이스-클라우드-비교표]]
 - [[Knowledge/Dev/TCP 프로토콜 연구/idle-cwnd-reset|idle-cwnd-reset]]
 - [[Knowledge/Dev/TCP 프로토콜 연구/연구방향확장|연구방향확장]]
 - [[Knowledge/Dev/TCP 프로토콜 연구/혼잡제어알고리즘비교|혼잡제어알고리즘비교]]

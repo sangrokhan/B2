@@ -3,7 +3,7 @@ date: 2026-09-02
 type: knowledge
 project: TCP 프로토콜 연구
 status: reference
-tags: [samsung, galaxy-ai, on-device-ai, cloud-ai, mobile, android, network-research]
+tags: [samsung, galaxy-ai, on-device-ai, cloud-ai, mobile, android, network-research, com, https, on-device, cloud, 삼성, 클라우드]
 ---
 
 # 삼성 Galaxy AI / 안드로이드 AI 기능 — On-device vs Cloud AI 비교표
