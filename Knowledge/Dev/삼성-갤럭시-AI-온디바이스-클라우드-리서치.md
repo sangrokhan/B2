@@ -24,6 +24,7 @@ split: false
 - 연속 호출(멀티턴) 입력 데이터 전송 속도 저하를 실측할 적절한 응용/모델 운영환경이 안 보인다는 지적, 출처 명시 기록 요청
 - Samsung Photo Assist(Generative Edit) 심층 조사: 삼성계정 필수, 이미지가 삼성 클라우드 서버에서 처리(저장 안 함)됨을 공식자료로 확인
 - mitmproxy 갤럭시 실기기 적용 방법과 한계(SSL 피닝, Knox 워런티 소실) 정리, 비루팅 대안으로 PCAPdroid 우선 제안
+- 전체 비교표 + 출처(원본 링크 전체)를 [[Knowledge/Dev/삼성-갤럭시-AI-온디바이스-클라우드-비교표|삼성 갤럭시 AI On-device vs Cloud 비교표]]로 영구 정리
 
 #### Decisions
 - 루팅+TLS 프록시보다 비루팅 PCAPdroid로 트래픽 패턴을 먼저 관찰하는 것을 실용적 1단계로 채택
