@@ -17,23 +17,23 @@ tags: [samsung, galaxy-ai, on-device-ai, cloud-ai, mobile, android, network-rese
 
 | 기능 | 처리 위치 | 사용 모델(추정/공식) | 근거 |
 |---|---|---|---|
-| Live Translate (통화 실시간 통역) | On-device | Samsung 자체 NMT | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Interpreter (대면 통역) | On-device | Samsung 자체 NMT | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Chat Assist (메시지 번역/톤변환) | On-device | Samsung 자체 언어모델 | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Instant Slow-mo / 영상 AI | On-device | Samsung NPU 모델 | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| AI Zoom | On-device | Samsung 이미지 NPU 모델 | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Bixby 기본 명령 | On-device | Samsung NLU | [samsung.com/apps/bixby](https://www.samsung.com/global/galaxy/apps/bixby/) |
-| Voice Recorder 전사(기본) | On-device | Samsung STT | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Note Assist (요약/서식) | 하이브리드(추정) | Gauss + 필요시 클라우드 | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Transcript Assist 요약 | 하이브리드(추정) | 온디바이스 STT + 클라우드 요약 | [samsung.com/galaxy-ai](https://www.samsung.com/global/galaxy/galaxy-ai/) |
-| Bixby 복잡 질의 | 하이브리드(추정) | 온디바이스 NLU + 클라우드 백엔드 | [samsung.com/apps/bixby](https://www.samsung.com/global/galaxy/apps/bixby/) |
-| Circle to Search | Cloud (공식 확인) | Google Search/Lens 백엔드 | [blog.google/circle-to-search](https://blog.google/products/search/circle-to-search-galaxy-s24/) |
+| Live Translate (통화 실시간 통역) | On-device | Samsung 자체 NMT | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Interpreter (대면 통역) | On-device | Samsung 자체 NMT | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Chat Assist (메시지 번역/톤변환) | On-device | Samsung 자체 언어모델 | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Instant Slow-mo / 영상 AI | On-device | Samsung NPU 모델 | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| AI Zoom | On-device | Samsung 이미지 NPU 모델 | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Bixby 기본 명령 | On-device | Samsung NLU | [samsung.com/apps/bixby](https://www.samsung.com/us/apps/bixby/) |
+| Voice Recorder 전사(기본) | On-device | Samsung STT | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Note Assist (요약/서식) | 하이브리드(추정) | Gauss + 필요시 클라우드 | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Transcript Assist 요약 | 하이브리드(추정) | 온디바이스 STT + 클라우드 요약 | [samsung.com/galaxy-ai](https://www.samsung.com/us/galaxy-ai/) |
+| Bixby 복잡 질의 | 하이브리드(추정) | 온디바이스 NLU + 클라우드 백엔드 | [samsung.com/apps/bixby](https://www.samsung.com/us/apps/bixby/) |
+| Circle to Search | Cloud (공식 확인) | Google Search/Lens 백엔드 | [blog.google/circle-to-search](https://blog.google/products-and-platforms/platforms/android/google-ai-samsung-galaxy-s24/) |
 | **Generative Edit / Photo Assist** | **Cloud (공식 확인)** | Samsung Gauss2 (서버), 네트워크+삼성계정 필수 | [삼성 뉴스룸 프라이버시](https://news.samsung.com/global/your-privacy-secured-how-galaxy-ai-empowers-you-to-take-control-of-your-data), [EU 커뮤니티 공지](https://eu.community.samsung.com/t5/tips-how-to/meet-generative-edit-the-new-galaxy-ai-magic-in-photo-editor/ba-p/13226659), [삼성 지원 FAQ](https://www.samsung.com/ae/support/mobile-devices/when-i-use-ai-photo-editing-features-does-my-photo-get-uploaded-to-the-internetcloud-can-someone-see-it/) |
-| Sketch to Image | Cloud | Samsung Gauss2 (서버) | [news.samsung.com/gauss2](https://news.samsung.com/global/samsung-electronics-unveils-samsung-gauss2) |
-| Portrait Studio | Cloud | Samsung Gauss2 (서버) | [news.samsung.com/gauss2](https://news.samsung.com/global/samsung-electronics-unveils-samsung-gauss2) |
-| Gemini 통합 어시스턴트 | Cloud(+일부 Nano) | Google Gemini Pro/Advanced | [blog.google/galaxy-s24-gemini](https://blog.google/products/gemini/galaxy-s24-gemini/) |
-| Browsing Assist (Samsung Internet 요약) | Cloud | 서버 LLM | [samsunginternet.com](https://www.samsunginternet.com/) |
-| Now Bar / Now Brief (S25) | Cloud | Samsung+Google 백엔드 | [samsung.com/galaxy-s25/ai](https://www.samsung.com/global/galaxy/galaxy-s25/ai/) |
+| Sketch to Image | Cloud | Samsung Gauss2 (서버) | [news.samsung.com/gauss2](https://news.samsung.com/global/samsung-electronics-hosts-samsung-developer-conference-korea-2024-unveils-its-improved-gen-ai-model) |
+| Portrait Studio | Cloud | Samsung Gauss2 (서버) | [news.samsung.com/gauss2](https://news.samsung.com/global/samsung-electronics-hosts-samsung-developer-conference-korea-2024-unveils-its-improved-gen-ai-model) |
+| Gemini 통합 어시스턴트 | Cloud(+일부 Nano) | Google Gemini Pro/Advanced | [blog.google/galaxy-s24-gemini](https://blog.google/products-and-platforms/platforms/android/google-ai-samsung-galaxy-s24/) |
+| Browsing Assist (Samsung Internet 요약) | Cloud | 서버 LLM | [samsunginternet.com](https://browser.samsung.com) |
+| Now Bar / Now Brief (S25) | Cloud | Samsung+Google 백엔드 | [samsung.com/galaxy-s25/ai](https://www.samsung.com/us/smartphones/galaxy-s25/) |
 
 **주의**: 삼성이 기능별 on-device/cloud 구분을 공식 명시하지 않는 경우가 많아
 '하이브리드' 항목은 응답속도·오프라인 지원 여부 등 정황 근거 기반 추정. 단,
@@ -74,7 +74,7 @@ Slack 대화 중 "이미지 전체를 매번 새로 업로드하는가?"라는 �
 - 구글과는 Gemini Nano(온디바이스, 요약/텍스트 일부) / Gemini Pro·Advanced(클라우드,
   Circle to Search·어시스턴트 대화)로 이원화 협업.
 - 2025년 말 이후 유료화 논의는 주로 클라우드 연산 비용 때문이라는 분석
-  ([The Verge](https://www.theverge.com/2024/1/17/24041363/samsung-galaxy-ai-features-free-2025)).
+  ([The Verge](https://www.theverge.com/2024/1/19/24044251/samsung-galaxy-s24-ultra-ai-features-cost-2025)).
 
 ## 4. 실측/테스트 방법론
 
@@ -121,14 +121,14 @@ Slack 대화 중 "이미지 전체를 매번 새로 업로드하는가?"라는 �
 
 ## 전체 출처 목록
 
-- https://www.samsung.com/global/galaxy/galaxy-ai/
-- https://news.samsung.com/global/samsung-electronics-unveils-samsung-gauss2
-- https://blog.google/products/search/circle-to-search-galaxy-s24/
-- https://blog.google/products/gemini/galaxy-s24-gemini/
-- https://www.samsung.com/global/galaxy/galaxy-s25/ai/
-- https://www.samsung.com/global/galaxy/apps/bixby/
-- https://www.samsunginternet.com/
-- https://www.theverge.com/2024/1/17/24041363/samsung-galaxy-ai-features-free-2025
+- https://www.samsung.com/us/galaxy-ai/
+- https://news.samsung.com/global/samsung-electronics-hosts-samsung-developer-conference-korea-2024-unveils-its-improved-gen-ai-model
+- https://blog.google/products-and-platforms/platforms/android/google-ai-samsung-galaxy-s24/
+- https://blog.google/products-and-platforms/platforms/android/google-ai-samsung-galaxy-s24/
+- https://www.samsung.com/us/smartphones/galaxy-s25/
+- https://www.samsung.com/us/apps/bixby/
+- https://browser.samsung.com
+- https://www.theverge.com/2024/1/19/24044251/samsung-galaxy-s24-ultra-ai-features-cost-2025
 - https://news.samsung.com/global/your-privacy-secured-how-galaxy-ai-empowers-you-to-take-control-of-your-data
 - https://www.sammobile.com/news/use-galaxy-ai-without-sending-data-to-samsung-heres-what-you-lose/
 - https://www.samsung.com/us/support/answer/ANS10000753/
