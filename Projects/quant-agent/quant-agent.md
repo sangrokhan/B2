@@ -1,7 +1,7 @@
 ---
 type: topic-doc
 title: 퀀트 자율 연구 에이전트 (quant-agent)
-tags: [backtesting, gatekeeper, knowledge-base, quant, quant-agent, research-loop, sharpe, vectorbt, 가설, 검색구조, 기각, 사용량, 실패, 실행, 인덱스, 컨텍스트, 퀀트, 토큰최적화, jsonl, 검색, 태그, iteration, 구조]
+tags: [backtesting, dashboard, gatekeeper, iteration, jsonl, knowledge-base, quant, quant-agent, research-loop, sharpe, ui, vectorbt, 가설, 검색, 검색구조, 구조, 기각, 사용량, 실패, 실행, 인덱스, 컨텍스트, 퀀트, 태그, 토큰최적화, slack, 대시보드, topic-doc, c0acdpuakn3]
 created: 2026-09-03
 updated: 2026-09-04
 split: false
@@ -67,3 +67,24 @@ split: false
 - [ ] 기존 90개 strategies_log 엔트리에 태그 필드 소급 backfill 작업 수행
 - [ ] 새 구조 적용 후 실제 iteration당 컨텍스트 사용량 감소 효과 재측정
 <!-- topic-doc:end:slack:C0ACDPUAKN3:20260904_093046_8f4175b9 -->
+
+### 17:08 작업 대시보드 구축 요구사항 인터뷰
+<!-- topic-doc:start:slack:C0ACDPUAKN3:20260904_170842_69e8ac57 -->
+<!-- chapter: 대시보드 -->
+<!-- date: 2026-09-04 -->
+- Source: session 20260904_170842_69e8ac57
+
+#### Summary
+- Sangrok이 퀀트 에이전트(quant-agent)의 작업 내역을 볼 수 있는 대시보드 구축을 요청
+- 현재 quant-agent 저장소 구조 확인: knowledge_base/(strategies_log.jsonl, strategies_index.jsonl, visited_pages/visited_urls.jsonl), backtests/, strategies/, validation/ 등에 이미 다수의 전략 실험 데이터 축적됨(9/3~9/4 기준 20개 이상의 전략 백테스트 리포트)
+- dev-task-guidelines 스킬에 따라 기본 개발 경로(PRD 인터뷰 → progress.md 승인 → Claude Code subagent loop)를 적용하기 위해 Ouroboros 방식 clarify 인터뷰 시작
+- clarify 질문 3가지 제시: (1) 대시보드 핵심 콘텐츠 - 전략 탐색/검증 이력 vs 게이트키퍼 실행 이력 vs 통합, (2) 접근 방식 - 로컬 웹 대시보드 vs 정적 리포트 vs Slack 요약, (3) 기술 스택 선호도
+- 대화가 clarify 질문 제시 단계에서 종료됨 — 사용자 답변 대기 중 (미완료, 다음 세션에서 이어질 가능성)
+
+#### Decisions
+- 없음 (요구사항 확정 전, clarify 인터뷰 단계에서 대화 중단)
+
+#### TODO
+- [ ] Sangrok의 clarify 답변(대시보드 콘텐츠/접근방식/기술스택 선택) 확인 후 PRD 인터뷰 이어서 진행
+- [ ] progress.md 초안 작성 및 승인 게이트 통과 후 대시보드 구현 착수
+<!-- topic-doc:end:slack:C0ACDPUAKN3:20260904_170842_69e8ac57 -->
